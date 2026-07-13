@@ -31,6 +31,11 @@ Sistema de Gestão de Relacionamento com Clientes (CRM) desenvolvido com **Djang
 - **DevOps & Deploy:** Render, WhiteNoise, Gunicorne Git & GitHub.
 - **Qualidade:** Class Based Views, Crispy Forms, Testes Automatizados
 
+## Arquitetura
+
+A documentacao arquitetural esta disponivel em `docs/architecture/`.
+As principais decisoes estao registradas em `docs/adr/`.
+
 ### 🌐 Demo Online
 Você pode testar o sistema funcionando em tempo real clicando no link abaixo:
 
