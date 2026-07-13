@@ -18,7 +18,7 @@ Sistema de Gestão de Relacionamento com Clientes (CRM) desenvolvido com **Djang
 - **🛡️ Multi-Tenant (Isolamento de Dados):** Cada usuário vê apenas os seus próprios leads. Acesso cruzado é bloqueado.
 - **🌑 UI/UX Moderna:** Interface responsiva com tema **Dark/Cyberpunk**, Sidebar fixa e componentes Bootstrap customizados.
 - **📊 Dashboard Interativo:** Gráficos em tempo real (Chart.js) para análise de Status e Prioridade.
-- **📝 Gestão de Leads (CRUD):**CRUD completo (Criar, Listar, Editar, Excluir) com segurança por usuário.
+- **📝 Gestão de Leads (CRUD):** CRUD completo (Criar, Listar, Editar, Excluir) com segurança por usuário.
 - **⚙️ Perfil de Usuário:** Área para atualização de dados cadastrais.
 - **🗄 Histórico de Interações:** Registro detalhado de contatos com cada cliente.
 - **📈 Exportação de Dados:** Relatórios em CSV para análise externa.
@@ -48,6 +48,21 @@ CRM_Portfolio/
 ├── docs/
 └── frontend/  # futuro
 ```
+
+## API REST
+
+A API v1 esta disponivel em:
+
+```text
+/api/v1/health/
+/api/v1/users/me/
+/api/v1/leads/
+/api/schema/
+/api/docs/
+/api/redoc/
+```
+
+Nesta fase a autenticacao da API usa sessao Django com CSRF. JWT ainda nao foi implementado.
 
 ### 🌐 Demo Online
 Você pode testar o sistema funcionando em tempo real clicando no link abaixo:

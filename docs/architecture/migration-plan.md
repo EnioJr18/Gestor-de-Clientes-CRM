@@ -111,17 +111,20 @@ Decisoes ja aplicadas:
 
 ## Fase 4 - API
 
+Estado:
+
+- fundacao REST concluida na Sprint 8;
+- DRF, django-filter e drf-spectacular instalados;
+- `/api/v1/health/`, `/api/v1/users/me/` e CRUD de leads implementados;
+- OpenAPI, Swagger e ReDoc disponiveis;
+- JWT ainda nao implementado.
+
 Escopo:
 
-- DRF;
-- serializers;
-- permissions;
-- erros;
-- paginacao;
-- filtros;
-- OpenAPI;
 - JWT;
-- endpoints de leads, interacoes, dashboard e relatorios.
+- endpoints de interacoes, dashboard e relatorios;
+- endurecimento de autenticacao para SPA;
+- politicas finais de CORS e armazenamento de token.
 
 Dependencias:
 
@@ -131,7 +134,7 @@ Dependencias:
 
 Criterio para avancar:
 
-- API cobre os fluxos necessarios para o frontend.
+- API cobre os fluxos necessarios para o frontend inicial, com isolamento por usuario e schema validado.
 
 ## Fase 5 - Frontend
 

@@ -11,12 +11,12 @@ A API inicial usara o prefixo:
 Recursos iniciais:
 
 ```text
-/api/v1/auth/
+/api/v1/health/
 /api/v1/users/me/
 /api/v1/leads/
-/api/v1/interactions/
-/api/v1/dashboard/
-/api/v1/reports/
+/api/schema/
+/api/docs/
+/api/redoc/
 ```
 
 Novas versoes so devem ser criadas quando houver quebra real de contrato.
@@ -102,10 +102,10 @@ Parametros iniciais:
 
 Filtros de leads:
 
-- `search`: busca parcial por nome e, se decidido, email;
+- `search`: busca parcial por nome, sobrenome, email e telefone;
 - `status`: valores de `Lead.STATUS_CHOICES`;
 - `prioridade`: valores de `Lead.PRIORITY_CHOICES`;
-- `criado_em_after` e `criado_em_before`: intervalo por data/hora;
+- `criado_em_de` e `criado_em_ate`: intervalo inclusivo por data;
 - `ordering`: campos permitidos somente.
 
 Filtros invalidos nao devem ser silenciosamente ignorados se isso gerar comportamento confuso. A API deve retornar erro consistente.
@@ -189,9 +189,9 @@ Nao autenticado:
 ```json
 {
   "status": 401,
-  "code": "authentication_failed",
-  "message": "Autenticacao necessaria.",
-  "errors": null
+  "code": "not_authenticated",
+  "message": "Autenticacao obrigatoria.",
+  "errors": {}
 }
 ```
 
@@ -202,7 +202,7 @@ Nao encontrado:
   "status": 404,
   "code": "not_found",
   "message": "Recurso nao encontrado.",
-  "errors": null
+  "errors": {}
 }
 ```
 
@@ -211,10 +211,18 @@ Erro interno:
 ```json
 {
   "status": 500,
-  "code": "internal_error",
-  "message": "Nao foi possivel processar a solicitacao.",
-  "errors": null
+  "code": "server_error",
+  "message": "Erro interno do servidor.",
+  "errors": {}
 }
 ```
 
 Nunca expor traceback, SQL, nomes de variaveis internas, secrets ou detalhes de infraestrutura.
+
+## Autenticacao e CSRF
+
+A Sprint 8 usa autenticacao por sessao Django na API. Escritas autenticadas (`POST`, `PATCH`, `PUT`, `DELETE`) exigem CSRF quando a sessao real e usada. Essa decisao preserva a seguranca atual ate a introducao planejada de JWT.
+
+## Campos protegidos
+
+`id`, `agente_responsavel`, `criado_em` e `atualizado_em` nao podem ser enviados em payloads de lead. Campos desconhecidos tambem sao rejeitados com erro de validacao.

@@ -58,6 +58,17 @@ Direcao planejada:
 
 Decisao pendente: estrategia final de armazenamento e renovacao de tokens.
 
+## API REST atual
+
+A API v1 usa autenticacao por sessao Django nesta fase. O autenticador da API continua aplicando CSRF em escritas autenticadas e retorna contrato JSON padronizado para falhas de autenticacao, permissao e validacao.
+
+Endpoints publicos nesta sprint:
+
+- `GET /api/v1/health/`;
+- documentacao OpenAPI em `/api/schema/`, `/api/docs/` e `/api/redoc/`.
+
+Endpoints de dados exigem usuario autenticado. Leads sao sempre filtrados por `agente_responsavel=request.user`; leads alheios retornam 404 para evitar IDOR.
+
 ## XSS e erros
 
 - Nao expor traceback em producao.
@@ -88,7 +99,7 @@ Essa protecao deve entrar antes de expor CSV pela API.
 
 ## CORS e CSRF
 
-CORS deve ser restrito ao frontend autorizado. CSRF depende da estrategia final de JWT/cookies. Se refresh token for cookie `HttpOnly`, CSRF precisa ser tratado explicitamente.
+CORS deve ser restrito ao frontend autorizado. CORS nao foi adicionado na Sprint 8 porque ainda nao ha SPA em outro origin. CSRF permanece ativo com SessionAuthentication. Quando JWT for introduzido, a estrategia de cookies/tokens devera redefinir a relacao entre CORS e CSRF.
 
 ## Dependencias
 

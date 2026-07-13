@@ -102,6 +102,32 @@ Producao exige PostgreSQL com `sslmode=require`, sem fallback para SQLite. Neon 
 
 O driver mantido e `psycopg2-binary==2.9.11`, ja presente no projeto e validado com Django 6 e Python 3.14 nesta sprint.
 
+## API REST
+
+A API REST v1 foi criada dentro do app `leads`, sem mover as views Django existentes:
+
+```text
+backend/apps/leads/api/
+  authentication.py
+  exceptions.py
+  filters.py
+  pagination.py
+  serializers.py
+  urls.py
+  views.py
+```
+
+Rotas iniciais:
+
+- `GET /api/v1/health/`: publico e sem consulta pesada.
+- `GET /api/v1/users/me/`: usuario autenticado atual.
+- `/api/v1/leads/`: CRUD REST de leads do usuario autenticado.
+- `/api/schema/`, `/api/docs/`, `/api/redoc/`: OpenAPI, Swagger UI e ReDoc.
+
+A autenticacao desta sprint usa sessao Django com CSRF para escritas. JWT, CORS e frontend SPA seguem fora do escopo atual.
+
+O queryset da API de leads nasce sempre escopado por `agente_responsavel=request.user`. Recursos de outro usuario retornam 404.
+
 ### interactions
 
 Responsavel por historico de interacoes, notas, contatos, datas, vinculo com lead e operacoes futuras de timeline.
