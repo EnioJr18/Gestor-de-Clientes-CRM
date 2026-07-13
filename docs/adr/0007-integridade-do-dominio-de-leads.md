@@ -43,5 +43,6 @@ O banco local atual continha somente dados de teste e nao apresentou registros i
 - Um banco com leads orfaos ou duplicidades por usuario deve ser limpo antes da migration de schema.
 - A migration `0004_validate_domain_integrity` falha cedo se encontrar dados incompativeis, sem criar usuario ficticio ou apagar dados.
 - SQLite segue suportado, mas recria tabelas para aplicar algumas constraints.
-- PostgreSQL/Neon deve ser validado em banco descartavel antes de virar fonte principal.
+- PostgreSQL local foi validado na Sprint 7.
+- Neon deve ser validado em banco descartavel antes de receber migrations remotas.
 - A API futura deve reutilizar a mesma politica de dominio nos serializers.

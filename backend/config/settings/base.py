@@ -72,6 +72,18 @@ def database_from_url(url, *, conn_max_age=0, conn_health_checks=False):
     )
 
 
+def database_url_config(name, *, conn_max_age=0, conn_health_checks=False, require_postgresql=False):
+    url = required_env(name)
+    config = database_from_url(
+        url,
+        conn_max_age=conn_max_age,
+        conn_health_checks=conn_health_checks,
+    )
+    if require_postgresql and config["ENGINE"] != "django.db.backends.postgresql":
+        raise ImproperlyConfigured(f"{name} deve usar PostgreSQL.")
+    return config
+
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",

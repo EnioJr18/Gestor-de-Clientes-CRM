@@ -91,7 +91,11 @@ class LeadModelTest(TestCase):
         self.assertIn("lead_priority_valid_chk", constraint_names)
 
     def test_full_clean_rejects_overlong_name(self):
-        lead = create_lead(nome="x" * 256)
+        lead = Lead(
+            nome="x" * 256,
+            email="overlong@example.com",
+            agente_responsavel=self.user,
+        )
         with self.assertRaises(ValidationError):
             lead.full_clean()
 

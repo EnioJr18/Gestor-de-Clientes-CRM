@@ -1,0 +1,23 @@
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
+    image: crm-pro-postgres:18
+    container_name: crm_pro_postgres
+    environment:
+      POSTGRES_DB: crm_pro
+      POSTGRES_USER: crm_user
+      POSTGRES_PASSWORD: crm_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - crm_postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crm_user -d crm_pro"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  crm_postgres_data:

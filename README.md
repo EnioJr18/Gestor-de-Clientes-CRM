@@ -87,38 +87,54 @@ Você pode testar o sistema funcionando em tempo real clicando no link abaixo:
     pip install -r backend/requirements.txt
     ```
 
-4.  **Configure as Variáveis de Ambiente**
+4.  **Inicie o PostgreSQL local**
+    ```bash
+    docker compose up -d postgres
+    docker compose ps
+    ```
+
+    Para parar o banco local:
+    ```bash
+    docker compose stop postgres
+    ```
+
+    Para apagar o volume local descartavel:
+    ```bash
+    docker compose down -v
+    ```
+5.  **Configure as Variáveis de Ambiente**
     Crie um arquivo `.env` na raiz do projeto. O backend carrega esse arquivo a partir da raiz do repositorio:
     ```env
     SECRET_KEY=sua_chave_secreta
     DEBUG=True
-    DATABASE_URL=postgres://usuario:senha@host-neon.tech/neondb?sslmode=require ou sqlite
+    USE_SQLITE=False
+    DATABASE_URL=postgresql://crm_user:crm_password@localhost:5432/crm_pro
+    TEST_DATABASE_URL=postgresql://crm_user:crm_password@localhost:5432/crm_pro_test
     ```
 
-5.  **Execute as Migrations**
+6.  **Execute as Migrations**
     ```bash
-    python backend/manage.py makemigrations
     python backend/manage.py migrate
     ```
 
-6.  **Crie um Superusuário (para acessar o Admin, opcional)**
+7.  **Crie um Superusuário (para acessar o Admin, opcional)**
     ```bash
     python backend/manage.py createsuperuser
     ```
 
-7.  **Inicie o servidor**
+8.  **Inicie o servidor**
     ```bash
     python backend/manage.py runserver
     ```
 
     Alternativamente, entre na pasta `backend/` e execute `python manage.py runserver`.
 
-8.  **Execute os testes**
+9.  **Execute os testes**
     ```bash
-    python backend/manage.py test
+    python backend/manage.py test -v 2
     ```
 
-9. **Acesse**
+10. **Acesse**
 http://127.0.0.1:8000/
 
 

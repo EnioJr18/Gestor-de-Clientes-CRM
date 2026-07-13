@@ -94,7 +94,8 @@ Criterio para avancar:
 - migrations testadas;
 - banco limpo migrando do zero;
 - SQLite validado;
-- PostgreSQL/Neon validado antes de virar banco principal.
+- PostgreSQL local validado;
+- Neon validado somente quando houver banco ou branch explicitamente descartavel.
 
 Decisoes ja aplicadas:
 
@@ -104,6 +105,9 @@ Decisoes ja aplicadas:
 - usuarios diferentes podem cadastrar o mesmo e-mail;
 - choices de status e prioridade sao protegidos por constraints;
 - indices compostos foram adicionados para consultas por usuario, status, prioridade, criacao e interacoes por data.
+- PostgreSQL 18 local passou a ser o banco principal de desenvolvimento e testes.
+- SQLite ficou restrito a fallback explicito de diagnostico.
+- Neon segue como destino de producao, exigindo `sslmode=require`.
 
 ## Fase 4 - API
 

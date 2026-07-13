@@ -21,13 +21,40 @@ def import_settings(module, extra_env=None):
     env.update(BASE_ENV)
     env.pop("SECRET_KEY", None)
     env.pop("DATABASE_URL", None)
+    env.pop("TEST_DATABASE_URL", None)
     env.pop("ALLOWED_HOSTS", None)
     env.pop("DEBUG", None)
+    env.pop("USE_SQLITE", None)
+    env.pop("USE_SQLITE_FOR_TESTS", None)
     if extra_env:
         env.update(extra_env)
 
     return subprocess.run(
         [sys.executable, "-c", f"import {module}; print('ok')"],
+        cwd=Path(__file__).resolve().parents[1],
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def run_settings_code(module, code, extra_env=None):
+    env = os.environ.copy()
+    env.update(BASE_ENV)
+    env.pop("SECRET_KEY", None)
+    env.pop("DATABASE_URL", None)
+    env.pop("TEST_DATABASE_URL", None)
+    env.pop("ALLOWED_HOSTS", None)
+    env.pop("DEBUG", None)
+    env.pop("USE_SQLITE", None)
+    env.pop("USE_SQLITE_FOR_TESTS", None)
+    if extra_env:
+        env.update(extra_env)
+
+    script = f"from {module} import *\n{code}"
+    return subprocess.run(
+        [sys.executable, "-c", script],
         cwd=Path(__file__).resolve().parents[1],
         env=env,
         capture_output=True,
@@ -81,6 +108,19 @@ class ProductionSettingsTests(SimpleTestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("DATABASE_URL e obrigatoria", result.stderr)
 
+    def test_rejects_sqlite_database_url(self):
+        result = import_settings("config.settings.production", {**self.valid_env, "DATABASE_URL": "sqlite:///db.sqlite3"})
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("DATABASE_URL deve usar PostgreSQL", result.stderr)
+
+    def test_requires_sslmode_require(self):
+        result = import_settings(
+            "config.settings.production",
+            {**self.valid_env, "DATABASE_URL": "postgres://user:pass@localhost:5432/crmpro"},
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("sslmode=require", result.stderr)
+
     def test_requires_allowed_hosts(self):
         env = self.valid_env.copy()
         env.pop("ALLOWED_HOSTS")
@@ -104,19 +144,75 @@ class ProductionSettingsTests(SimpleTestCase):
 
 
 class EnvironmentSettingsTests(SimpleTestCase):
-    def test_development_defaults_to_sqlite_and_http(self):
-        from config.settings import development
+    def test_development_requires_database_url_by_default(self):
+        result = import_settings("config.settings.development")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("DATABASE_URL e obrigatoria", result.stderr)
 
-        self.assertEqual(development.DATABASES["default"]["ENGINE"], "django.db.backends.sqlite3")
-        self.assertIn("127.0.0.1", development.ALLOWED_HOSTS)
-        self.assertFalse(development.SESSION_COOKIE_SECURE)
-        self.assertFalse(development.CSRF_COOKIE_SECURE)
-        self.assertFalse(development.SECURE_SSL_REDIRECT)
+    def test_development_uses_postgresql_database_url(self):
+        result = import_settings(
+            "config.settings.development",
+            {"DATABASE_URL": "postgres://user:pass@localhost:5432/crm_pro"},
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
 
-    def test_test_settings_are_isolated(self):
-        from config.settings import test
+    def test_development_rejects_sqlite_database_url_by_default(self):
+        result = import_settings("config.settings.development", {"DATABASE_URL": "sqlite:///db.sqlite3"})
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("DATABASE_URL deve usar PostgreSQL", result.stderr)
 
-        self.assertEqual(test.SECRET_KEY, "test-only-secret-key")
-        self.assertFalse(test.DEBUG)
-        self.assertIn("testserver", test.ALLOWED_HOSTS)
-        self.assertEqual(test.DATABASES["default"]["TEST"]["NAME"], ":memory:")
+    def test_development_sqlite_requires_explicit_opt_in(self):
+        result = import_settings("config.settings.development", {"USE_SQLITE": "True"})
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_development_http_security_defaults(self):
+        result = run_settings_code(
+            "config.settings.development",
+            "print(SESSION_COOKIE_SECURE); print(CSRF_COOKIE_SECURE); print(SECURE_SSL_REDIRECT); print(','.join(ALLOWED_HOSTS))",
+            {"DATABASE_URL": "postgres://user:pass@localhost:5432/crm_pro"},
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("False\nFalse\nFalse", result.stdout)
+        self.assertIn("127.0.0.1", result.stdout)
+
+    def test_test_settings_require_test_database_url_by_default(self):
+        result = import_settings("config.settings.test")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("TEST_DATABASE_URL e obrigatoria", result.stderr)
+
+    def test_test_settings_use_isolated_postgresql_database(self):
+        result = import_settings(
+            "config.settings.test",
+            {
+                "DATABASE_URL": "postgres://user:pass@localhost:5432/crm_pro",
+                "TEST_DATABASE_URL": "postgres://user:pass@localhost:5432/crm_pro_test",
+            },
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_test_settings_reject_development_database_name(self):
+        result = import_settings(
+            "config.settings.test",
+            {
+                "DATABASE_URL": "postgres://user:pass@localhost:5432/crm_pro",
+                "TEST_DATABASE_URL": "postgres://user:pass@localhost:5432/crm_pro",
+            },
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("TEST_DATABASE_URL nao pode apontar", result.stderr)
+
+    def test_test_settings_sqlite_requires_explicit_opt_in(self):
+        result = import_settings("config.settings.test", {"USE_SQLITE_FOR_TESTS": "True"})
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_test_settings_are_isolated_with_sqlite_opt_in(self):
+        result = run_settings_code(
+            "config.settings.test",
+            "print(SECRET_KEY); print(DEBUG); print(','.join(ALLOWED_HOSTS)); print(DATABASES['default']['TEST']['NAME'])",
+            {"USE_SQLITE_FOR_TESTS": "True"},
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("test-only-secret-key", result.stdout)
+        self.assertIn("False", result.stdout)
+        self.assertIn("testserver", result.stdout)
+        self.assertIn(":memory:", result.stdout)

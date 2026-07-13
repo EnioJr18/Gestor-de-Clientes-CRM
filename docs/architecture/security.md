@@ -83,6 +83,8 @@ Essa protecao deve entrar antes de expor CSV pela API.
 - Secrets devem vir de variaveis de ambiente.
 - Logs nao devem conter tokens, senhas, `DATABASE_URL`, cookies ou dados sensiveis desnecessarios.
 - Produção deve usar HTTPS e cookies seguros.
+- URLs reais de Neon nao devem ser exibidas em logs, documentacao ou relatorios.
+- Migrations remotas so devem rodar em banco ou branch Neon confirmado como descartavel, salvo operacao de producao explicitamente aprovada.
 
 ## CORS e CSRF
 

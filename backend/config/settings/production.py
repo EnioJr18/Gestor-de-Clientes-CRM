@@ -1,6 +1,6 @@
 from django.core.exceptions import ImproperlyConfigured
 
-from .base import database_from_url, env_bool, env_list, required_env
+from .base import database_url_config, env_bool, env_list, required_env
 from .base import *  # noqa: F403
 
 
@@ -21,12 +21,16 @@ if "*" in ALLOWED_HOSTS:
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS", [])
 
 DATABASES = {
-    "default": database_from_url(
-        required_env("DATABASE_URL"),
+    "default": database_url_config(
+        "DATABASE_URL",
         conn_max_age=int(os.environ.get("DATABASE_CONN_MAX_AGE", "600")),
         conn_health_checks=True,
+        require_postgresql=True,
     )
 }
+
+if DATABASES["default"].get("OPTIONS", {}).get("sslmode") != "require":
+    raise ImproperlyConfigured("DATABASE_URL de producao deve exigir sslmode=require.")
 
 MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 

@@ -80,9 +80,27 @@ Indices atuais justificados pelas consultas existentes:
 
 Compatibilidade de banco:
 
-- SQLite continua suportado para desenvolvimento e testes.
-- PostgreSQL/Neon deve suportar a unicidade funcional por `LOWER(email)`, mas a aplicacao definitiva em banco remoto exige verificar duplicidades antes de migrar.
+- PostgreSQL 18 local e o banco principal de desenvolvimento.
+- SQLite continua suportado apenas como fallback explicito de diagnostico.
+- PostgreSQL/Neon suporta a unicidade funcional por `LOWER(email)`, validada em PostgreSQL local.
 - SQLite recria tabelas ao aplicar algumas constraints; isso e esperado para desenvolvimento local.
+
+## Banco de dados
+
+Desenvolvimento usa PostgreSQL local via Docker Compose:
+
+```text
+Dockerfile.postgres -> FROM postgres:18-alpine
+docker-compose.yml -> image crm-pro-postgres:18
+DATABASE_URL=postgresql://crm_user:crm_password@localhost:5432/crm_pro
+TEST_DATABASE_URL=postgresql://crm_user:crm_password@localhost:5432/crm_pro_test
+```
+
+`USE_SQLITE=True` e `USE_SQLITE_FOR_TESTS=True` existem somente para diagnostico local. A ausencia de `DATABASE_URL` nao faz fallback silencioso para SQLite.
+
+Producao exige PostgreSQL com `sslmode=require`, sem fallback para SQLite. Neon deve ser validado em banco ou branch explicitamente descartavel antes de aplicar migrations remotas.
+
+O driver mantido e `psycopg2-binary==2.9.11`, ja presente no projeto e validado com Django 6 e Python 3.14 nesta sprint.
 
 ### interactions
 

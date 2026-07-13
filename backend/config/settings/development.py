@@ -1,4 +1,4 @@
-from .base import BASE_DIR, database_from_url, env_bool, env_bool_or_default, env_list
+from .base import BASE_DIR, database_url_config, env_bool, env_bool_or_default, env_list
 from .base import *  # noqa: F403
 
 
@@ -12,16 +12,21 @@ DEBUG = env_bool_or_default("DEBUG", True)
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", ["127.0.0.1", "localhost"])
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS", [])
 
-if env_bool("USE_DATABASE_URL", False) and os.environ.get("DATABASE_URL"):
-    DATABASES = {
-        "default": database_from_url(os.environ["DATABASE_URL"]),
-    }
-else:
+if env_bool("USE_SQLITE", False):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
         }
+    }
+else:
+    DATABASES = {
+        "default": database_url_config(
+            "DATABASE_URL",
+            conn_max_age=int(os.environ.get("DATABASE_CONN_MAX_AGE", "60")),
+            conn_health_checks=True,
+            require_postgresql=True,
+        )
     }
 
 SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", False)
