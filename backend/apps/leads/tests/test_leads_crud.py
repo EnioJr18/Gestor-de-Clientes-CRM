@@ -2,8 +2,8 @@ from django.contrib.messages import get_messages
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from leads.models import Interaction, Lead
-from leads.tests.factories import create_interaction, create_lead, create_user, lead_payload
+from apps.leads.models import Interaction, Lead
+from apps.leads.tests.factories import create_interaction, create_lead, create_user, lead_payload
 
 
 class LeadListTests(TestCase):

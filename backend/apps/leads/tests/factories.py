@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
-from leads.models import Interaction, Lead
+from apps.leads.models import Interaction, Lead
 
 
 User = get_user_model()

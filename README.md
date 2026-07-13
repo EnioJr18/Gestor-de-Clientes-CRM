@@ -35,6 +35,19 @@ Sistema de Gestão de Relacionamento com Clientes (CRM) desenvolvido com **Djang
 
 A documentacao arquitetural esta disponivel em `docs/architecture/`.
 As principais decisoes estao registradas em `docs/adr/`.
+Estrutura resumida:
+
+```text
+CRM_Portfolio/
+├── backend/
+│   ├── apps/
+│   │   └── leads/
+│   ├── config/
+│   ├── manage.py
+│   └── requirements.txt
+├── docs/
+└── frontend/  # futuro
+```
 
 ### 🌐 Demo Online
 Você pode testar o sistema funcionando em tempo real clicando no link abaixo:
@@ -71,11 +84,11 @@ Você pode testar o sistema funcionando em tempo real clicando no link abaixo:
 
 3.  **Instale as dependências**
     ```bash
-    pip install -r requirements.txt
+    pip install -r backend/requirements.txt
     ```
 
 4.  **Configure as Variáveis de Ambiente**
-    Crie um arquivo `.env` na raiz do projeto e adicione a URL do seu banco de dados:
+    Crie um arquivo `.env` na raiz do projeto. O backend carrega esse arquivo a partir da raiz do repositorio:
     ```env
     SECRET_KEY=sua_chave_secreta
     DEBUG=True
@@ -84,21 +97,28 @@ Você pode testar o sistema funcionando em tempo real clicando no link abaixo:
 
 5.  **Execute as Migrations**
     ```bash
-    python manage.py makemigrations
-    python manage.py migrate
+    python backend/manage.py makemigrations
+    python backend/manage.py migrate
     ```
 
 6.  **Crie um Superusuário (para acessar o Admin, opcional)**
     ```bash
-    python manage.py createsuperuser
+    python backend/manage.py createsuperuser
     ```
 
 7.  **Inicie o servidor**
     ```bash
-    python manage.py runserver
+    python backend/manage.py runserver
     ```
 
-8. **Acesse**
+    Alternativamente, entre na pasta `backend/` e execute `python manage.py runserver`.
+
+8.  **Execute os testes**
+    ```bash
+    python backend/manage.py test
+    ```
+
+9. **Acesse**
 http://127.0.0.1:8000/
 
 

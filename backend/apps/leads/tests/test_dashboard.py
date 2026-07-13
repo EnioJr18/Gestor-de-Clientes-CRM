@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from leads.tests.factories import create_interaction, create_lead, create_user, set_created_at
+from apps.leads.tests.factories import create_interaction, create_lead, create_user, set_created_at
 
 
 class DashboardViewTest(TestCase):

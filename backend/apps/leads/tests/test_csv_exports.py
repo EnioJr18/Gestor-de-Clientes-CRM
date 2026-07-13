@@ -4,8 +4,8 @@ import io
 from django.test import TestCase
 from django.urls import reverse
 
-from leads.tests.factories import create_interaction, create_lead, create_user
-from leads.views import _sanitize_csv_cell
+from apps.leads.tests.factories import create_interaction, create_lead, create_user
+from apps.leads.views import _sanitize_csv_cell
 
 
 def rows_from_response(response):

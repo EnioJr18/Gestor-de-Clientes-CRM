@@ -6,10 +6,12 @@ from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 
-BASE_DIR = Path(__file__).resolve().parents[2]
+BACKEND_DIR = Path(__file__).resolve().parents[2]
+REPOSITORY_ROOT = BACKEND_DIR.parent
+BASE_DIR = BACKEND_DIR
 
 if os.environ.get("CRM_LOAD_DOTENV", "1").strip().lower() not in {"0", "false", "no", "off"}:
-    load_dotenv(BASE_DIR / ".env")
+    load_dotenv(REPOSITORY_ROOT / ".env")
 
 
 def env_bool(name, default=None, *, required=False):
@@ -77,7 +79,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "leads",
+    "apps.leads.apps.LeadsConfig",
     "crispy_forms",
     "crispy_bootstrap5",
 ]
@@ -92,8 +94,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "setup.urls"
-WSGI_APPLICATION = "setup.wsgi.application"
+ROOT_URLCONF = "config.urls"
+WSGI_APPLICATION = "config.wsgi.application"
 
 TEMPLATES = [
     {

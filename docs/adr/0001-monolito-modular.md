@@ -33,3 +33,7 @@ Manter Django e evoluir para um monolito modular com DRF, separando responsabili
 - Melhor separacao de responsabilidades.
 - Exige disciplina para nao criar dependencias circulares.
 - Permite evoluir para DRF sem reescrever tudo de uma vez.
+
+## Atualizacao estrutural
+
+Na Sprint 5, o backend foi movido para `backend/`, o pacote `setup/` foi substituido por `backend/config/` e o app `leads` foi movido para `backend/apps/leads/`. O app label `leads` foi preservado para manter compatibilidade com migrations e dados existentes.

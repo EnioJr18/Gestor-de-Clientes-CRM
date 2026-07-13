@@ -1,8 +1,8 @@
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from leads.models import Interaction
-from leads.tests.factories import create_interaction, create_lead, create_user
+from apps.leads.models import Interaction
+from apps.leads.tests.factories import create_interaction, create_lead, create_user
 
 
 class InteractionViewTests(TestCase):

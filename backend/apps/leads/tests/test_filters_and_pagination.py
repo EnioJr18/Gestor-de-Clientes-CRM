@@ -2,9 +2,9 @@ from django.core.paginator import PageNotAnInteger
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from leads.models import Lead
-from leads.tests.factories import create_interaction, create_lead, create_user
-from leads.views import leads_by_priority
+from apps.leads.models import Lead
+from apps.leads.tests.factories import create_interaction, create_lead, create_user
+from apps.leads.views import leads_by_priority
 
 
 class SearchFilterTests(TestCase):

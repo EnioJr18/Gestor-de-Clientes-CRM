@@ -7,10 +7,12 @@ venv/
 .venv/
 env/
 db.sqlite3
+backend/db.sqlite3
 *.sqlite3
 .pytest_cache/
 .coverage
 htmlcov/
 staticfiles/
+backend/staticfiles/
 media/
 .DS_Store

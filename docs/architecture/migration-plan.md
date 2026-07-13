@@ -5,7 +5,7 @@
 Entrada:
 
 - ambiente e settings estabilizados;
-- 16 testes atuais passando.
+- suite de caracterizacao atual passando.
 
 Escopo:
 
@@ -29,6 +29,31 @@ Riscos:
 Criterio para avancar:
 
 - fluxos principais cobertos para usuario anonimo, dono e outro usuario.
+
+## Fase 1.5 - Reorganizacao estrutural do backend
+
+Estado:
+
+- concluida na Sprint 5.
+
+Escopo realizado:
+
+- criacao de `backend/`;
+- substituicao de `setup/` por `backend/config/`;
+- movimentacao de `leads/` para `backend/apps/leads/`;
+- preservacao do app label `leads`;
+- manutencao de templates, static, migrations e testes dentro do app;
+- manutencao do `.env` na raiz do repositorio;
+- banco SQLite local resolvido em `backend/db.sqlite3`.
+
+Fora de escopo:
+
+- DRF;
+- JWT;
+- React;
+- Docker;
+- CI;
+- alteracoes de dominio.
 
 ## Fase 2 - Correcoes do monolito atual
 

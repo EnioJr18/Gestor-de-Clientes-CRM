@@ -3,7 +3,7 @@ from django.contrib.messages import get_messages
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from leads.tests.factories import create_user
+from apps.leads.tests.factories import create_user
 
 
 User = get_user_model()

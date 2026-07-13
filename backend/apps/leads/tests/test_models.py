@@ -3,8 +3,8 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.test import TestCase
 
-from leads.models import Interaction, Lead
-from leads.tests.factories import create_interaction, create_lead, create_user
+from apps.leads.models import Interaction, Lead
+from apps.leads.tests.factories import create_interaction, create_lead, create_user
 
 
 User = get_user_model()

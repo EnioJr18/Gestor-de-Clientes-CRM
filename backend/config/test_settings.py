@@ -7,7 +7,7 @@ from unittest import mock
 from django.core.exceptions import ImproperlyConfigured
 from django.test import SimpleTestCase
 
-from setup.settings.base import env_bool
+from config.settings.base import env_bool
 
 
 BASE_ENV = {
@@ -64,48 +64,48 @@ class ProductionSettingsTests(SimpleTestCase):
     def test_requires_secret_key(self):
         env = self.valid_env.copy()
         env.pop("SECRET_KEY")
-        result = import_settings("setup.settings.production", env)
+        result = import_settings("config.settings.production", env)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("SECRET_KEY e obrigatoria", result.stderr)
 
     def test_rejects_empty_secret_key(self):
         env = {**self.valid_env, "SECRET_KEY": " "}
-        result = import_settings("setup.settings.production", env)
+        result = import_settings("config.settings.production", env)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("SECRET_KEY e obrigatoria", result.stderr)
 
     def test_requires_database_url(self):
         env = self.valid_env.copy()
         env.pop("DATABASE_URL")
-        result = import_settings("setup.settings.production", env)
+        result = import_settings("config.settings.production", env)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("DATABASE_URL e obrigatoria", result.stderr)
 
     def test_requires_allowed_hosts(self):
         env = self.valid_env.copy()
         env.pop("ALLOWED_HOSTS")
-        result = import_settings("setup.settings.production", env)
+        result = import_settings("config.settings.production", env)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("ALLOWED_HOSTS e obrigatoria", result.stderr)
 
     def test_rejects_wildcard_allowed_hosts(self):
-        result = import_settings("setup.settings.production", {**self.valid_env, "ALLOWED_HOSTS": "*"})
+        result = import_settings("config.settings.production", {**self.valid_env, "ALLOWED_HOSTS": "*"})
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("ALLOWED_HOSTS=* nao e permitido", result.stderr)
 
     def test_rejects_debug_true(self):
-        result = import_settings("setup.settings.production", {**self.valid_env, "DEBUG": "True"})
+        result = import_settings("config.settings.production", {**self.valid_env, "DEBUG": "True"})
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("DEBUG nao pode ser True", result.stderr)
 
     def test_valid_environment_imports(self):
-        result = import_settings("setup.settings.production", self.valid_env)
+        result = import_settings("config.settings.production", self.valid_env)
         self.assertEqual(result.returncode, 0, result.stderr)
 
 
 class EnvironmentSettingsTests(SimpleTestCase):
     def test_development_defaults_to_sqlite_and_http(self):
-        from setup.settings import development
+        from config.settings import development
 
         self.assertEqual(development.DATABASES["default"]["ENGINE"], "django.db.backends.sqlite3")
         self.assertIn("127.0.0.1", development.ALLOWED_HOSTS)
@@ -114,7 +114,7 @@ class EnvironmentSettingsTests(SimpleTestCase):
         self.assertFalse(development.SECURE_SSL_REDIRECT)
 
     def test_test_settings_are_isolated(self):
-        from setup.settings import test
+        from config.settings import test
 
         self.assertEqual(test.SECRET_KEY, "test-only-secret-key")
         self.assertFalse(test.DEBUG)

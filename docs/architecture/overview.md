@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-O CRM.Pro hoje e um monolito Django com Django Templates. O projeto possui um app principal, `leads`, que concentra modelos, forms, views, URLs, templates, dashboard, exportacao CSV, cadastro, perfil e interacoes.
+O CRM.Pro hoje e um monolito Django com Django Templates. O backend fica em `backend/`, o pacote de configuracao fica em `backend/config/` e o app principal fica em `backend/apps/leads/`, preservando o app label historico `leads`.
 
 O estado confirmado no codigo atual:
 
@@ -10,9 +10,10 @@ O estado confirmado no codigo atual:
 - `Interaction` pertence a um `Lead` e, indiretamente, ao mesmo usuario.
 - As views principais limitam querysets por usuario autenticado.
 - O dashboard calcula metricas no mesmo modulo de views.
-- A exportacao CSV tambem vive em `leads.views`.
+- A exportacao CSV tambem vive em `apps.leads.views`.
 - Os settings ja estao separados em `development`, `test` e `production`.
 - O frontend atual e server-rendered com Bootstrap, CSS/JS inline e Chart.js.
+- A pasta `frontend/` ainda nao existe; ela continua planejada para a etapa React.
 
 ```mermaid
 flowchart LR

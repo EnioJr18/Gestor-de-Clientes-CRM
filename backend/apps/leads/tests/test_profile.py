@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 
-from leads.tests.factories import create_user
+from apps.leads.tests.factories import create_user
 
 
 class ProfileTests(TestCase):

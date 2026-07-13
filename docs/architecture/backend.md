@@ -12,7 +12,7 @@ Nao serao usados:
 - services para CRUD trivial;
 - pastas/classes vazias sem uso real.
 
-## Estrutura-alvo de referencia
+## Estrutura atual
 
 ```text
 backend/
@@ -21,6 +21,22 @@ backend/
     urls.py
     asgi.py
     wsgi.py
+  apps/
+    leads/
+      migrations/
+      static/
+      templates/
+      tests/
+  manage.py
+  requirements.txt
+```
+
+`backend/apps/leads/apps.py` usa `name = "apps.leads"` e preserva `label = "leads"` para manter o historico de migrations e o app label existente.
+
+## Estrutura futura de referencia
+
+```text
+backend/
   apps/
     accounts/
     leads/
@@ -32,12 +48,9 @@ backend/
     pagination.py
     permissions.py
     validators.py
-  tests/
-  manage.py
-  requirements/
 ```
 
-Essa estrutura e referencia futura. Nao e uma ordem para mover os arquivos agora.
+Essa estrutura futura e referencia de evolucao. Nao criar pastas vazias antes de necessidade real.
 
 ## Modulos previstos
 
