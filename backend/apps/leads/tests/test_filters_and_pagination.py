@@ -76,7 +76,7 @@ class ShortcutFilterTests(TestCase):
                 user=self.user,
                 nome=f"Lead {prioridade}",
                 prioridade=prioridade,
-                email=f"{prioridade.lower()}@example.com",
+                email=f"{prioridade.lower()}-choice@example.com",
             )
             request = factory.get(f"/prioridade/{prioridade}/")
             request.user = self.user

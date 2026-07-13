@@ -71,6 +71,10 @@ Criterio para avancar:
 
 ## Fase 3 - Dominio e banco
 
+Estado:
+
+- estabilizacao inicial concluida na Sprint 6.
+
 Escopo:
 
 - constraints;
@@ -87,7 +91,19 @@ Riscos:
 
 Criterio para avancar:
 
-- migrations testadas e banco PostgreSQL validado.
+- migrations testadas;
+- banco limpo migrando do zero;
+- SQLite validado;
+- PostgreSQL/Neon validado antes de virar banco principal.
+
+Decisoes ja aplicadas:
+
+- lead sem responsavel nao e permitido;
+- excluir usuario remove seus leads e interacoes por CASCADE;
+- e-mail de lead e unico por usuario com comparacao case-insensitive;
+- usuarios diferentes podem cadastrar o mesmo e-mail;
+- choices de status e prioridade sao protegidos por constraints;
+- indices compostos foram adicionados para consultas por usuario, status, prioridade, criacao e interacoes por data.
 
 ## Fase 4 - API
 

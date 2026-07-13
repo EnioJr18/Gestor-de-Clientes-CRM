@@ -110,12 +110,28 @@ class LeadCreateTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Lead.objects.count(), 0)
 
-    def test_duplicate_email_is_allowed_current_behavior(self):
+    def test_duplicate_email_for_same_user_is_rejected_by_form(self):
         create_lead(user=self.user, email="dup@example.com")
         self.client.force_login(self.user)
         response = self.client.post(reverse("leads:lead_create"), lead_payload(email="dup@example.com"))
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(Lead.objects.filter(email="dup@example.com").count(), 2)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Ja existe um lead com este e-mail para este usuario.")
+        self.assertEqual(Lead.objects.filter(email="dup@example.com").count(), 1)
+
+    def test_duplicate_email_check_is_case_insensitive_and_normalizes_email(self):
+        create_lead(user=self.user, email="dup@example.com")
+        self.client.force_login(self.user)
+        response = self.client.post(reverse("leads:lead_create"), lead_payload(email=" DUP@example.com "))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Lead.objects.filter(email="dup@example.com").count(), 1)
+
+    def test_same_email_for_different_user_is_allowed(self):
+        create_lead(user=self.other, email="shared@example.com")
+        self.client.force_login(self.user)
+        response = self.client.post(reverse("leads:lead_create"), lead_payload(email="Shared@example.com"))
+        self.assertRedirects(response, reverse("leads:lead_list"))
+        self.assertTrue(Lead.objects.filter(agente_responsavel=self.user, email="shared@example.com").exists())
+        self.assertTrue(Lead.objects.filter(agente_responsavel=self.other, email="shared@example.com").exists())
 
     def test_create_with_csrf_enforced_without_token_is_forbidden(self):
         client = Client(enforce_csrf_checks=True)
@@ -196,6 +212,18 @@ class LeadDetailUpdateDeleteTests(TestCase):
         self.client.post(reverse("leads:lead_update", args=[self.lead.pk]), payload)
         self.lead.refresh_from_db()
         self.assertEqual(self.lead.agente_responsavel, self.user)
+
+    def test_update_to_duplicate_email_for_same_user_is_rejected(self):
+        create_lead(user=self.user, email="taken@example.com")
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("leads:lead_update", args=[self.lead.pk]),
+            lead_payload(email="TAKEN@example.com"),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Ja existe um lead com este e-mail para este usuario.")
+        self.lead.refresh_from_db()
+        self.assertEqual(self.lead.email, "meu@example.com")
 
     def test_update_missing_or_other_user_lead_returns_404(self):
         self.client.force_login(self.user)

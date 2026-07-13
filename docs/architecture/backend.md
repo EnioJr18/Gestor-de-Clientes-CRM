@@ -62,6 +62,28 @@ Responsavel por usuario autenticado, perfil, cadastro, autenticacao, alteracao d
 
 Responsavel por cadastro, listagem, busca, filtros, atualizacao, exclusao, status, prioridade e propriedade dos dados.
 
+Estado atual de dominio:
+
+- `Lead.agente_responsavel` e obrigatorio e usa `on_delete=CASCADE`.
+- `Lead.email` e obrigatorio e unico por usuario responsavel, com comparacao case-insensitive no banco.
+- Usuarios diferentes podem cadastrar o mesmo e-mail de lead.
+- `status` e `prioridade` mantem valores persistidos estaveis e possuem constraints de banco.
+- `Interaction.lead` e obrigatorio e usa `on_delete=CASCADE`.
+- `Interaction.nota` e obrigatoria; o form e a validacao de model rejeitam valores vazios ou somente espacos, e o banco rejeita string vazia.
+
+Indices atuais justificados pelas consultas existentes:
+
+- `lead_owner_status_idx`: dashboard e filtros por status dentro do usuario.
+- `lead_owner_priority_idx`: dashboard e filtros por prioridade dentro do usuario.
+- `lead_owner_created_idx`: listagem, recentes e novos por usuario.
+- `inter_lead_date_idx`: historico e interacoes recentes por lead em ordem temporal.
+
+Compatibilidade de banco:
+
+- SQLite continua suportado para desenvolvimento e testes.
+- PostgreSQL/Neon deve suportar a unicidade funcional por `LOWER(email)`, mas a aplicacao definitiva em banco remoto exige verificar duplicidades antes de migrar.
+- SQLite recria tabelas ao aplicar algumas constraints; isso e esperado para desenvolvimento local.
+
 ### interactions
 
 Responsavel por historico de interacoes, notas, contatos, datas, vinculo com lead e operacoes futuras de timeline.

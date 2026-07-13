@@ -99,6 +99,11 @@ class LeadCreateView(LoginRequiredMixin, generic.CreateView):
     form_class = LeadForm
     success_url = reverse_lazy("leads:lead_list")
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+
     def form_valid(self, form):
         lead = form.save(commit=False)
         lead.agente_responsavel = self.request.user
@@ -112,6 +117,11 @@ class LeadUpdateView(LoginRequiredMixin, generic.UpdateView):
     
     def get_queryset(self):
         return Lead.objects.filter(agente_responsavel=self.request.user)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
 
     def get_success_url(self):
         messages.success(self.request, "Lead atualizado!")
@@ -215,7 +225,7 @@ def export_leads_csv(request):
     writer.writerow(['Nome', 'Email', 'Telefone', 'Status', 'Prioridade', 'Criado Em'])
 
 
-    leads = Lead.objects.filter(agente_responsavel=request.user).values_list(
+    leads = Lead.objects.filter(agente_responsavel=request.user).order_by("pk").values_list(
         'nome', 'email', 'telefone', 'status', 'prioridade', 'criado_em'
     )
     for lead in leads:

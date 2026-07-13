@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.test import TestCase
 
 from apps.leads.models import Interaction, Lead
@@ -49,19 +49,46 @@ class LeadModelTest(TestCase):
         self.user.delete()
         self.assertFalse(Lead.objects.filter(id=lead_id).exists())
 
-    def test_responsible_user_can_be_null_currently(self):
-        lead = create_lead(user=None, agente_responsavel=None, email="orphan@example.com")
-        self.assertIsNone(lead.agente_responsavel)
+    def test_responsible_user_is_required_at_database_level(self):
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                Lead.objects.create(nome="Orfao", email="orphan@example.com", agente_responsavel=None)
 
     def test_model_full_clean_rejects_invalid_email(self):
         lead = create_lead(email="invalid-email")
         with self.assertRaises(ValidationError):
             lead.full_clean()
 
-    def test_database_allows_duplicate_email_currently(self):
+    def test_database_rejects_duplicate_email_for_same_user_case_insensitive(self):
         create_lead(user=self.user, email="same@example.com")
-        create_lead(user=self.user, email="same@example.com")
-        self.assertEqual(Lead.objects.filter(email="same@example.com").count(), 2)
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                create_lead(user=self.user, email="SAME@example.com")
+
+    def test_database_allows_same_email_for_different_users(self):
+        other = create_user(username="other-owner")
+        create_lead(user=self.user, email="shared@example.com")
+        create_lead(user=other, email="shared@example.com")
+        self.assertEqual(Lead.objects.filter(email="shared@example.com").count(), 2)
+
+    def test_database_rejects_invalid_status_and_priority(self):
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                create_lead(user=self.user, email="bad-status@example.com", status="BAD")
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                create_lead(user=self.user, email="bad-priority@example.com", prioridade="BAD")
+
+    def test_declares_domain_indexes_and_constraints(self):
+        index_names = {index.name for index in Lead._meta.indexes}
+        constraint_names = {constraint.name for constraint in Lead._meta.constraints}
+
+        self.assertIn("lead_owner_status_idx", index_names)
+        self.assertIn("lead_owner_priority_idx", index_names)
+        self.assertIn("lead_owner_created_idx", index_names)
+        self.assertIn("lead_owner_email_ci_uniq", constraint_names)
+        self.assertIn("lead_status_valid_chk", constraint_names)
+        self.assertIn("lead_priority_valid_chk", constraint_names)
 
     def test_full_clean_rejects_overlong_name(self):
         lead = create_lead(nome="x" * 256)
@@ -95,9 +122,16 @@ class InteractionModelTest(TestCase):
         self.lead.delete()
         self.assertFalse(Interaction.objects.filter(pk=interaction.pk).exists())
 
-    def test_note_blank_is_allowed_by_database_but_not_by_model_validation(self):
-        interaction = create_interaction(self.lead, nota="")
-        self.assertEqual(interaction.nota, "")
+    def test_note_blank_is_rejected_by_database_and_model_validation(self):
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                create_interaction(self.lead, nota="")
+        interaction = Interaction(lead=self.lead, nota="")
+        with self.assertRaises(ValidationError):
+            interaction.full_clean()
+
+    def test_note_with_only_spaces_is_rejected_by_model_validation(self):
+        interaction = Interaction(lead=self.lead, nota="   \n\t")
         with self.assertRaises(ValidationError):
             interaction.full_clean()
 
@@ -105,10 +139,12 @@ class InteractionModelTest(TestCase):
         with self.assertRaises(IntegrityError):
             Interaction.objects.create(nota="Sem lead")
 
-    def test_interaction_can_point_to_orphan_lead_currently(self):
-        lead = create_lead(user=None, agente_responsavel=None, email="orphan-interaction@example.com")
-        interaction = create_interaction(lead)
-        self.assertIsNone(interaction.lead.agente_responsavel)
-
     def test_no_default_interaction_ordering_is_defined(self):
         self.assertEqual(Interaction._meta.ordering, [])
+
+    def test_declares_interaction_indexes_and_constraints(self):
+        index_names = {index.name for index in Interaction._meta.indexes}
+        constraint_names = {constraint.name for constraint in Interaction._meta.constraints}
+
+        self.assertIn("inter_lead_date_idx", index_names)
+        self.assertIn("interaction_nota_not_empty_chk", constraint_names)

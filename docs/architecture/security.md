@@ -11,6 +11,8 @@ Lead.agente_responsavel = usuario autenticado
 Interaction.lead.agente_responsavel = usuario autenticado
 ```
 
+`Lead.agente_responsavel` e obrigatorio no banco. A exclusao de usuario usa CASCADE, removendo leads e interacoes associados, pois o projeto ainda nao possui retencao, auditoria formal ou organizacoes.
+
 O projeto atual possui isolamento por usuario. Ele nao possui multi-tenancy real por organizacao.
 
 Organizacao, membership e roles nao entram agora. Uma evolucao futura pode adicionar organizacoes, mas isso nao deve ser antecipado sem necessidade.
@@ -98,6 +100,7 @@ Antes de concluir uma feature:
 - queryset e objeto sao escopados pelo usuario;
 - recurso alheio nao vaza existencia;
 - serializers validam campos e choices;
+- constraints de banco protegem responsavel, choices e unicidade essencial;
 - erros seguem contrato;
 - logs nao expõem dados sensiveis;
 - testes cobrem usuario anonimo, usuario dono e outro usuario;
