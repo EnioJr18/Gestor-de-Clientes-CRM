@@ -2,6 +2,8 @@
 # Sair se der erro
 set -o errexit
 
+export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE:-setup.settings.production}"
+
 # Instalar as dependências
 pip install -r requirements.txt
 
