@@ -1,10 +1,10 @@
-import unittest
-
 from django.core.paginator import PageNotAnInteger
-from django.test import TestCase
+from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
+from leads.models import Lead
 from leads.tests.factories import create_interaction, create_lead, create_user
+from leads.views import leads_by_priority
 
 
 class SearchFilterTests(TestCase):
@@ -62,14 +62,34 @@ class ShortcutFilterTests(TestCase):
         self.assertNotContains(response, "Alta")
         self.assertContains(response, "Baixa")
 
-    def test_high_priority_route_current_behavior_uses_lowercase_and_returns_empty(self):
-        response = self.client.get(reverse("leads:high_priority_leads"))
-        self.assertEqual(list(response.context["leads"]), [])
-
-    @unittest.expectedFailure
-    def test_high_priority_route_expected_to_return_uppercase_alta(self):
+    def test_high_priority_route_returns_uppercase_alta(self):
         response = self.client.get(reverse("leads:high_priority_leads"))
         self.assertIn(self.high, list(response.context["leads"]))
+        self.assertNotIn(self.low, list(response.context["leads"]))
+        self.assertNotIn(self.other_high, list(response.context["leads"]))
+
+    def test_priority_filter_accepts_all_valid_choice_values(self):
+        factory = RequestFactory()
+
+        for prioridade, _label in Lead.PRIORITY_CHOICES:
+            create_lead(
+                user=self.user,
+                nome=f"Lead {prioridade}",
+                prioridade=prioridade,
+                email=f"{prioridade.lower()}@example.com",
+            )
+            request = factory.get(f"/prioridade/{prioridade}/")
+            request.user = self.user
+            response = leads_by_priority(request, prioridade)
+            self.assertContains(response, f"Lead {prioridade}")
+
+    def test_priority_filter_invalid_value_returns_empty_list(self):
+        factory = RequestFactory()
+        request = factory.get("/prioridade/invalida/")
+        request.user = self.user
+        response = leads_by_priority(request, "INVALIDA")
+        self.assertNotContains(response, "Alta")
+        self.assertNotContains(response, "Baixa")
 
 
 class PaginationTests(TestCase):

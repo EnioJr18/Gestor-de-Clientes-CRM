@@ -7,10 +7,37 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
+from django.utils import timezone
 import csv
 
 from .models import Lead, Interaction
 from .forms import InteractionForm, UserProfileForm, LeadForm
+
+
+CSV_FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _sanitize_csv_cell(value):
+    if value is None:
+        return ""
+
+    text = str(value)
+    if text.startswith("'"):
+        return text
+    if text.startswith(CSV_FORMULA_PREFIXES):
+        return f"'{text}"
+    return text
+
+
+def _sanitize_csv_row(values):
+    return [_sanitize_csv_cell(value) for value in values]
+
+
+def _choice_value(choices, raw_value):
+    for value, display in choices:
+        if raw_value.lower() in {value.lower(), display.lower()}:
+            return value
+    return None
 
 
 
@@ -20,6 +47,7 @@ def dashboard(request):
     leads_usuario = Lead.objects.filter(agente_responsavel=request.user)
     
     total_leads = leads_usuario.count()
+    novos_hoje = leads_usuario.filter(criado_em__date=timezone.localdate()).count()
     
     # 1. Gráfico de Status
     status_data = leads_usuario.values('status').annotate(total=Count('status'))
@@ -43,6 +71,7 @@ def dashboard(request):
         'labels_prioridade': labels_prioridade,
         'data_prioridade': data_prioridade,
         'interacoes_recentes': interacoes_recentes,
+        'novos_hoje': novos_hoje,
     }
     return render(request, 'leads/dashboard.html', contexto)
 
@@ -153,7 +182,10 @@ def leads_by_status(request, status):
 
 @login_required
 def leads_by_priority(request, prioridade):
-    leads = Lead.objects.filter(prioridade=prioridade, agente_responsavel=request.user).order_by('-criado_em')
+    prioridade_value = _choice_value(Lead.PRIORITY_CHOICES, prioridade)
+    leads = Lead.objects.none()
+    if prioridade_value:
+        leads = Lead.objects.filter(prioridade=prioridade_value, agente_responsavel=request.user).order_by('-criado_em')
     return render(request, 'leads/lead_list.html', {'leads': leads, 'filtro': f'Prioridade: {prioridade}'})
 
 @login_required
@@ -163,7 +195,8 @@ def recent_leads(request):
 
 @login_required
 def high_priority_leads(request):
-    leads = Lead.objects.filter(prioridade='alta', agente_responsavel=request.user).order_by('-criado_em')
+    prioridade_value = _choice_value(Lead.PRIORITY_CHOICES, 'Alta')
+    leads = Lead.objects.filter(prioridade=prioridade_value, agente_responsavel=request.user).order_by('-criado_em')
     return render(request, 'leads/lead_list.html', {'leads': leads, 'filtro': 'Leads de Alta Prioridade'})
 
 @login_required
@@ -186,7 +219,7 @@ def export_leads_csv(request):
         'nome', 'email', 'telefone', 'status', 'prioridade', 'criado_em'
     )
     for lead in leads:
-        writer.writerow(lead)
+        writer.writerow(_sanitize_csv_row(lead))
 
     return response
 
@@ -233,7 +266,7 @@ def export_interactions_csv(request, lead_id):
     for interacao in interacoes:
         writer.writerow([
             interacao.data_interacao.strftime("%d/%m/%Y %H:%M"), 
-            interacao.nota
+            _sanitize_csv_cell(interacao.nota)
         ])
 
     return response

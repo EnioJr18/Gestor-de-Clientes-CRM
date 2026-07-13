@@ -1,4 +1,3 @@
-import unittest
 from datetime import timedelta
 
 from django.test import TestCase
@@ -64,19 +63,32 @@ class DashboardCharacterizationTests(TestCase):
         self.assertEqual(len(notes), 5)
         self.assertNotIn("Other", notes)
 
-    def test_dashboard_current_template_hardcodes_new_leads_today_zero(self):
+    def test_dashboard_counts_new_leads_today(self):
         today = set_created_at(create_lead(user=self.user), timezone.now())
         response = self.client.get(reverse("leads:dashboard"))
         self.assertContains(response, "Novos Hoje")
-        self.assertIn('<h3 class="card-value">0</h3>', response.content.decode())
+        self.assertIn('<h3 class="card-value">1</h3>', response.content.decode())
+        self.assertEqual(response.context["novos_hoje"], 1)
         self.assertEqual(today.agente_responsavel, self.user)
 
-    @unittest.expectedFailure
-    def test_dashboard_expected_to_count_new_leads_today(self):
+    def test_dashboard_ignores_yesterday_and_other_users_new_leads_today(self):
         set_created_at(create_lead(user=self.user), timezone.now())
         set_created_at(create_lead(user=self.user), timezone.now() - timedelta(days=1))
+        set_created_at(create_lead(user=self.other), timezone.now())
         response = self.client.get(reverse("leads:dashboard"))
-        self.assertContains(response, '<h3 class="card-value">1</h3>', html=True)
+        self.assertEqual(response.context["novos_hoje"], 1)
+        self.assertIn('<h3 class="card-value">1</h3>', response.content.decode())
+
+    def test_dashboard_counts_multiple_new_leads_today_and_zero_for_empty_user(self):
+        set_created_at(create_lead(user=self.user), timezone.now())
+        set_created_at(create_lead(user=self.user), timezone.now())
+        response = self.client.get(reverse("leads:dashboard"))
+        self.assertEqual(response.context["novos_hoje"], 2)
+
+        empty_user = create_user(username="dash-empty")
+        self.client.force_login(empty_user)
+        empty_response = self.client.get(reverse("leads:dashboard"))
+        self.assertEqual(empty_response.context["novos_hoje"], 0)
 
     def test_chart_context_handles_special_characters_without_other_users_data(self):
         create_lead(user=self.user, nome="Cliente 'Especial'", status="NOVO", prioridade="MEDIA")
