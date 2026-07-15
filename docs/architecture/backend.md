@@ -124,7 +124,11 @@ Rotas iniciais:
 - `/api/v1/leads/`: CRUD REST de leads do usuario autenticado.
 - `/api/schema/`, `/api/docs/`, `/api/redoc/`: OpenAPI, Swagger UI e ReDoc.
 
-A autenticacao desta sprint usa sessao Django com CSRF para escritas. JWT, CORS e frontend SPA seguem fora do escopo atual.
+A Sprint 9 adicionou `apps/accounts` sem models ou migrations proprias. Esse app concentra login, refresh, logout, cookie, throttling e `users/me`. A API autentica primeiro por JWT Bearer e depois por sessao Django, preservando as paginas e o admin legados.
+
+O Simple JWT 5.5.1 esta fora da matriz oficial para Python 3.14, Django 6.0 e DRF 3.17. A combinacao foi validada pelo projeto com emissao, validacao, refresh, rotacao, blacklist e a suite completa em PostgreSQL 18; isso nao equivale a suporte oficial.
+
+As migrations aplicadas para blacklist pertencem ao pacote `rest_framework_simplejwt.token_blacklist`. Nenhuma migration de `accounts` ou `leads` foi criada na Sprint 9.
 
 O queryset da API de leads nasce sempre escopado por `agente_responsavel=request.user`. Recursos de outro usuario retornam 404.
 

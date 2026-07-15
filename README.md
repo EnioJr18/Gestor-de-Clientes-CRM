@@ -55,6 +55,10 @@ A API v1 esta disponivel em:
 
 ```text
 /api/v1/health/
+/api/v1/auth/csrf/
+/api/v1/auth/login/
+/api/v1/auth/refresh/
+/api/v1/auth/logout/
 /api/v1/users/me/
 /api/v1/leads/
 /api/schema/
@@ -62,7 +66,9 @@ A API v1 esta disponivel em:
 /api/redoc/
 ```
 
-Nesta fase a autenticacao da API usa sessao Django com CSRF. JWT ainda nao foi implementado.
+A API aceita JWT Bearer para a futura SPA e preserva sessao Django para o frontend legado. O access token curto e retornado no JSON; o refresh token fica somente em cookie HttpOnly, rotaciona a cada uso e e revogado por blacklist. Refresh e logout exigem CSRF.
+
+Origens CORS sao explicitas em `CORS_ALLOWED_ORIGINS`; wildcard nao e aceito. Configure separadamente `CSRF_TRUSTED_ORIGINS` para origens autorizadas a enviar cookies.
 
 ### 🌐 Demo Online
 Você pode testar o sistema funcionando em tempo real clicando no link abaixo:

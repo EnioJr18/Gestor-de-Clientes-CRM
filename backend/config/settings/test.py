@@ -5,10 +5,11 @@ from .base import BASE_DIR, database_url_config, env_bool, env_list
 from .base import *  # noqa: F403
 
 
-SECRET_KEY = "test-only-secret-key"
+SECRET_KEY = "test-only-secret-key-with-at-least-thirty-two-bytes-for-hs256"
 DEBUG = False
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", ["testserver", "127.0.0.1", "localhost"])
 CSRF_TRUSTED_ORIGINS = []
+CORS_ALLOWED_ORIGINS = ["http://localhost:5173"]
 
 if env_bool("USE_SQLITE_FOR_TESTS", False):
     DATABASES = {
@@ -41,6 +42,7 @@ PASSWORD_HASHERS = [
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
+JWT_REFRESH_COOKIE_SECURE = False
 SECURE_HSTS_SECONDS = 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = False
 SECURE_HSTS_PRELOAD = False

@@ -1,6 +1,6 @@
 from django.core.exceptions import ImproperlyConfigured
 
-from .base import database_url_config, env_bool, env_list, required_env
+from .base import database_url_config, env_bool, env_list, env_origins, required_env
 from .base import *  # noqa: F403
 
 
@@ -18,7 +18,9 @@ ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", required=True)
 if "*" in ALLOWED_HOSTS:
     raise ImproperlyConfigured("ALLOWED_HOSTS=* nao e permitido no ambiente de producao.")
 
-CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS", [])
+SPA_ENABLED = env_bool("SPA_ENABLED", False)
+CORS_ALLOWED_ORIGINS = env_origins("CORS_ALLOWED_ORIGINS", required=SPA_ENABLED)
+CSRF_TRUSTED_ORIGINS = env_origins("CSRF_TRUSTED_ORIGINS", required=SPA_ENABLED)
 
 DATABASES = {
     "default": database_url_config(
@@ -32,11 +34,16 @@ DATABASES = {
 if DATABASES["default"].get("OPTIONS", {}).get("sslmode") != "require":
     raise ImproperlyConfigured("DATABASE_URL de producao deve exigir sslmode=require.")
 
-MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
+MIDDLEWARE.insert(2, "whitenoise.middleware.WhiteNoiseMiddleware")
 
 SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", True)
 SESSION_COOKIE_SECURE = env_bool("SESSION_COOKIE_SECURE", True)
 CSRF_COOKIE_SECURE = env_bool("CSRF_COOKIE_SECURE", True)
+JWT_REFRESH_COOKIE_SECURE = env_bool("JWT_REFRESH_COOKIE_SECURE", True)
+if not JWT_REFRESH_COOKIE_SECURE:
+    raise ImproperlyConfigured("JWT_REFRESH_COOKIE_SECURE deve ser True em producao.")
+if JWT_REFRESH_COOKIE_SAMESITE == "None" and not JWT_REFRESH_COOKIE_SECURE:  # noqa: F405
+    raise ImproperlyConfigured("SameSite=None exige cookie Secure.")
 
 SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "3600"))
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", False)

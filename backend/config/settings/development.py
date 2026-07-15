@@ -1,4 +1,6 @@
-from .base import BASE_DIR, database_url_config, env_bool, env_bool_or_default, env_list
+from django.core.exceptions import ImproperlyConfigured
+
+from .base import BASE_DIR, database_url_config, env_bool, env_bool_or_default, env_list, env_origins
 from .base import *  # noqa: F403
 
 
@@ -10,7 +12,10 @@ SECRET_KEY = os.environ.get(
 DEBUG = env_bool_or_default("DEBUG", True)
 
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", ["127.0.0.1", "localhost"])
-CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS", [])
+CORS_ALLOWED_ORIGINS = env_origins("CORS_ALLOWED_ORIGINS", ["http://localhost:5173"])
+CSRF_TRUSTED_ORIGINS = env_origins("CSRF_TRUSTED_ORIGINS", ["http://localhost:5173"])
+if JWT_REFRESH_COOKIE_SAMESITE == "None" and not JWT_REFRESH_COOKIE_SECURE:  # noqa: F405
+    raise ImproperlyConfigured("SameSite=None exige JWT_REFRESH_COOKIE_SECURE=True.")
 
 if env_bool("USE_SQLITE", False):
     DATABASES = {

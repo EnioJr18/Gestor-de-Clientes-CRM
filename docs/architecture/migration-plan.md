@@ -117,14 +117,13 @@ Estado:
 - DRF, django-filter e drf-spectacular instalados;
 - `/api/v1/health/`, `/api/v1/users/me/` e CRUD de leads implementados;
 - OpenAPI, Swagger e ReDoc disponiveis;
-- JWT ainda nao implementado.
+- JWT seguro concluido na Sprint 9, com refresh HttpOnly, rotacao, blacklist, CSRF e CORS explicito;
+- sessao Django preservada para as paginas legadas.
 
 Escopo:
 
-- JWT;
 - endpoints de interacoes, dashboard e relatorios;
-- endurecimento de autenticacao para SPA;
-- politicas finais de CORS e armazenamento de token.
+- revisao da matriz Simple JWT quando houver release com suporte formal a stack atual.
 
 Dependencias:
 
@@ -179,9 +178,7 @@ Criterio para avancar:
 
 ## Decisoes pendentes
 
-- estrategia final de JWT;
-- cookie, memoria ou outro armazenamento;
-- politica de refresh;
+- estrategia de logout global ou revogacao de todos os dispositivos;
 - organizacao futura ou somente usuario;
 - soft delete ou exclusao definitiva;
 - auditoria de alteracoes;

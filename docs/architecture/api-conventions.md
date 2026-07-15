@@ -221,7 +221,17 @@ Nunca expor traceback, SQL, nomes de variaveis internas, secrets ou detalhes de 
 
 ## Autenticacao e CSRF
 
-A Sprint 8 usa autenticacao por sessao Django na API. Escritas autenticadas (`POST`, `PATCH`, `PUT`, `DELETE`) exigem CSRF quando a sessao real e usada. Essa decisao preserva a seguranca atual ate a introducao planejada de JWT.
+A API v1 aceita `Authorization: Bearer <access>` e sessao Django. Operacoes comuns autenticadas por Bearer nao dependem de CSRF; escritas por sessao continuam exigindo CSRF.
+
+Contrato de autenticacao:
+
+- `GET /api/v1/auth/csrf/`: emite cookie `csrftoken` legivel pela SPA e retorna o token.
+- `POST /api/v1/auth/login/`: recebe username/password, retorna access e usuario; refresh somente no cookie HttpOnly.
+- `POST /api/v1/auth/refresh/`: payload vazio, refresh no cookie e `X-CSRFToken` obrigatorio; rotaciona e revoga o anterior.
+- `POST /api/v1/auth/logout/`: payload vazio e `X-CSRFToken` obrigatorio; revoga quando houver token, apaga o cookie e retorna 204 de forma idempotente.
+- `GET /api/v1/users/me/`: aceita JWT e sessao e retorna apenas campos seguros.
+
+Payloads de auth rejeitam campos desconhecidos. Falhas de credencial nao distinguem usuario inexistente, senha incorreta ou usuario inativo. Refresh nunca aparece no JSON.
 
 ## Campos protegidos
 

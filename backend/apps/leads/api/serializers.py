@@ -1,4 +1,3 @@
-from django.contrib.auth.models import User
 from django.db import IntegrityError, transaction
 from rest_framework import serializers
 
@@ -24,13 +23,6 @@ class StrictFieldsMixin:
         if errors:
             raise serializers.ValidationError(errors)
         return super().to_internal_value(data)
-
-
-class CurrentUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ["id", "username", "first_name", "last_name", "email"]
-        read_only_fields = fields
 
 
 class LeadSerializer(StrictFieldsMixin, serializers.ModelSerializer):

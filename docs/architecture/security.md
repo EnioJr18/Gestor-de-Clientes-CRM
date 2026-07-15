@@ -39,28 +39,20 @@ Recursos de outros usuarios devem preferencialmente responder como nao encontrad
 
 O backend sempre e a fonte final de validacao. Validacao no frontend melhora UX, mas nao substitui serializers, permissions e regras de dominio no servidor.
 
-## Autenticacao futura
+## Autenticacao JWT para SPA
 
-Direcao planejada:
-
-- JWT para SPA;
-- access token curto;
-- refresh token;
-- estrategia final de armazenamento pendente;
-- evitar assumir `localStorage` como padrao;
-- considerar refresh token em cookie `HttpOnly`;
-- CORS e CSRF conforme estrategia final;
-- blacklist de refresh se adotada;
-- rate limiting;
-- tratar usuario inativo;
-- endpoint `me`;
-- troca e recuperacao de senha.
-
-Decisao pendente: estrategia final de armazenamento e renovacao de tokens.
+- Access token HS256 de 5 minutos no JSON, mantido apenas em memoria pela futura SPA.
+- Refresh token de 7 dias somente em cookie HttpOnly, Path `/api/v1/auth/`, SameSite configuravel e Secure obrigatorio em producao.
+- Rotacao e blacklist a cada refresh; logout revoga o token corrente.
+- O segredo padrao e `SECRET_KEY`; rotaciona-lo invalida todos os JWT existentes.
+- Refresh e logout exigem cookie CSRF + header `X-CSRFToken`; nao ha `csrf_exempt`.
+- Login e refresh rejeitam usuario inativo e usam mensagem generica contra enumeracao.
+- Throttling local por IP: login 5/min, refresh 20/min e CSRF 60/min, todos configuraveis. Cache local nao coordena limites entre multiplas instancias; Redis continua fora desta sprint.
+- A sessao Django permanece ativa e continua exigindo CSRF para escrita.
 
 ## API REST atual
 
-A API v1 usa autenticacao por sessao Django nesta fase. O autenticador da API continua aplicando CSRF em escritas autenticadas e retorna contrato JSON padronizado para falhas de autenticacao, permissao e validacao.
+A API v1 usa JWT Bearer para SPA e sessao Django para compatibilidade. O contrato JSON padronizado continua cobrindo autenticacao, permissao, CSRF, validacao e throttling.
 
 Endpoints publicos nesta sprint:
 
@@ -99,7 +91,9 @@ Essa protecao deve entrar antes de expor CSV pela API.
 
 ## CORS e CSRF
 
-CORS deve ser restrito ao frontend autorizado. CORS nao foi adicionado na Sprint 8 porque ainda nao ha SPA em outro origin. CSRF permanece ativo com SessionAuthentication. Quando JWT for introduzido, a estrategia de cookies/tokens devera redefinir a relacao entre CORS e CSRF.
+CORS usa apenas origens HTTP(S) explicitas e `CORS_ALLOW_CREDENTIALS=True`; wildcard e origem sem esquema sao rejeitados. Em producao, `SPA_ENABLED=True` exige `CORS_ALLOWED_ORIGINS` e `CSRF_TRUSTED_ORIGINS`. CORS e CSRF continuam controles separados.
+
+Simple JWT 5.5.1 nao declara suporte oficial a Python 3.14, Django 6.0 ou DRF 3.17. A compatibilidade foi validada localmente em PostgreSQL 18, mas upgrades dessas quatro pecas exigem repetir os testes de auth antes de producao.
 
 ## Dependencias
 

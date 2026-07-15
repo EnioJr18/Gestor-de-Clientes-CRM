@@ -154,6 +154,15 @@ Responsavel por base URL, credenciais, headers, timeout, interceptors, refresh e
 
 Chamadas Axios nao devem ficar espalhadas em componentes. Devem viver em `features/<feature>/api/` ou em camada compartilhada quando realmente global.
 
+## Autenticacao da SPA
+
+- Manter o access token apenas em memoria e enviá-lo como `Authorization: Bearer <token>`.
+- Usar `withCredentials` somente nos endpoints de auth que dependem dos cookies de refresh/CSRF.
+- Obter CSRF em `GET /api/v1/auth/csrf/` e enviar `X-CSRFToken` no refresh e logout.
+- Nunca ler nem persistir o refresh token: o backend o mantem em cookie HttpOnly.
+- Serializar tentativas de refresh; duas requisicoes concorrentes com o mesmo refresh fazem a primeira vencer e a segunda falhar apos a blacklist.
+- Ao recarregar a pagina, recuperar uma sessao da SPA por um unico refresh controlado, sem `localStorage` para access token.
+
 ## Tipagem
 
 Separar:

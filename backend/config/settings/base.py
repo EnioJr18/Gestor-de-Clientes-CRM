@@ -1,5 +1,7 @@
 import os
+from datetime import timedelta
 from pathlib import Path
+from urllib.parse import urlparse
 
 import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
@@ -57,6 +59,26 @@ def env_list(name, default=None, *, required=False):
     return items
 
 
+def env_origins(name, default=None, *, required=False):
+    origins = env_list(name, default, required=required)
+    for origin in origins:
+        parsed = urlparse(origin)
+        if (
+            "*" in origin
+            or parsed.scheme not in {"http", "https"}
+            or not parsed.netloc
+            or parsed.username is not None
+            or parsed.path
+            or parsed.params
+            or parsed.query
+            or parsed.fragment
+        ):
+            raise ImproperlyConfigured(
+                f"{name} deve conter apenas origens HTTP(S) explicitas, com esquema e host."
+            )
+    return origins
+
+
 def required_env(name):
     value = os.environ.get(name)
     if value is None or value.strip() == "":
@@ -91,9 +113,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
     "rest_framework",
+    "rest_framework_simplejwt.token_blacklist",
     "django_filters",
     "drf_spectacular",
+    "apps.accounts.apps.AccountsConfig",
     "apps.leads.apps.LeadsConfig",
     "crispy_forms",
     "crispy_bootstrap5",
@@ -101,6 +126,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -165,7 +191,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "apps.leads.api.authentication.ApiSessionAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "apps.accounts.api.authentication.ApiSessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
@@ -179,7 +206,37 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "EXCEPTION_HANDLER": "apps.leads.api.exceptions.api_exception_handler",
+    "DEFAULT_THROTTLE_RATES": {
+        "auth_login": os.environ.get("JWT_LOGIN_THROTTLE_RATE", "5/min"),
+        "auth_refresh": os.environ.get("JWT_REFRESH_THROTTLE_RATE", "20/min"),
+        "auth_csrf": os.environ.get("JWT_CSRF_THROTTLE_RATE", "60/min"),
+    },
 }
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": False,
+    "ALGORITHM": "HS256",
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+}
+
+JWT_REFRESH_COOKIE_NAME = os.environ.get("JWT_REFRESH_COOKIE_NAME", "crm_refresh")
+JWT_REFRESH_COOKIE_SAMESITE = os.environ.get("JWT_REFRESH_COOKIE_SAMESITE", "Lax")
+if JWT_REFRESH_COOKIE_SAMESITE not in {"Lax", "Strict", "None"}:
+    raise ImproperlyConfigured("JWT_REFRESH_COOKIE_SAMESITE deve ser Lax, Strict ou None.")
+JWT_REFRESH_COOKIE_SECURE = env_bool("JWT_REFRESH_COOKIE_SECURE", False)
+JWT_REFRESH_COOKIE_DOMAIN = os.environ.get("JWT_REFRESH_COOKIE_DOMAIN", "").strip() or None
+JWT_REFRESH_COOKIE_PATH = os.environ.get("JWT_REFRESH_COOKIE_PATH", "/api/v1/auth/")
+if not JWT_REFRESH_COOKIE_PATH.startswith("/"):
+    raise ImproperlyConfigured("JWT_REFRESH_COOKIE_PATH deve iniciar com /.")
+CORS_ALLOWED_ORIGINS = env_origins("CORS_ALLOWED_ORIGINS", [])
+CORS_ALLOW_CREDENTIALS = True
+CORS_URLS_REGEX = r"^/api/.*$"
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "CRM.Pro API",

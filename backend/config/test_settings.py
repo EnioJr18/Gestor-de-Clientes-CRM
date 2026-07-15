@@ -142,6 +142,52 @@ class ProductionSettingsTests(SimpleTestCase):
         result = import_settings("config.settings.production", self.valid_env)
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_spa_enabled_requires_explicit_cors_and_csrf_origins(self):
+        result = import_settings(
+            "config.settings.production",
+            {**self.valid_env, "SPA_ENABLED": "True"},
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("CORS_ALLOWED_ORIGINS", result.stderr)
+
+    def test_spa_enabled_accepts_explicit_origins(self):
+        result = import_settings(
+            "config.settings.production",
+            {
+                **self.valid_env,
+                "SPA_ENABLED": "True",
+                "CORS_ALLOWED_ORIGINS": "https://spa.example.com",
+                "CSRF_TRUSTED_ORIGINS": "https://spa.example.com",
+            },
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_rejects_cors_wildcard(self):
+        result = import_settings(
+            "config.settings.production",
+            {**self.valid_env, "CORS_ALLOWED_ORIGINS": "*"},
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("origens HTTP(S) explicitas", result.stderr)
+
+    def test_rejects_cors_wildcard_subdomain_and_path(self):
+        for origin in ["https://*.example.com", "https://spa.example.com/path"]:
+            with self.subTest(origin=origin):
+                result = import_settings(
+                    "config.settings.production",
+                    {**self.valid_env, "CORS_ALLOWED_ORIGINS": origin},
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("origens HTTP(S) explicitas", result.stderr)
+
+    def test_production_rejects_insecure_refresh_cookie(self):
+        result = import_settings(
+            "config.settings.production",
+            {**self.valid_env, "JWT_REFRESH_COOKIE_SECURE": "False"},
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("JWT_REFRESH_COOKIE_SECURE deve ser True", result.stderr)
+
 
 class EnvironmentSettingsTests(SimpleTestCase):
     def test_development_requires_database_url_by_default(self):
@@ -174,6 +220,15 @@ class EnvironmentSettingsTests(SimpleTestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("False\nFalse\nFalse", result.stdout)
         self.assertIn("127.0.0.1", result.stdout)
+
+    def test_development_defaults_to_explicit_vite_origin(self):
+        result = run_settings_code(
+            "config.settings.development",
+            "print(','.join(CORS_ALLOWED_ORIGINS)); print(','.join(CSRF_TRUSTED_ORIGINS))",
+            {"DATABASE_URL": "postgres://user:pass@localhost:5432/crm_pro"},
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.count("http://localhost:5173"), 2)
 
     def test_test_settings_require_test_database_url_by_default(self):
         result = import_settings("config.settings.test")

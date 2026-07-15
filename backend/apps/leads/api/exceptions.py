@@ -65,6 +65,31 @@ def api_exception_handler(exc, context):
         response.data = _payload(status.HTTP_400_BAD_REQUEST, errors=_flatten_errors(response.data))
         return response
 
+    if isinstance(exc, exceptions.AuthenticationFailed):
+        code = "authentication_failed"
+        message = "Autenticacao falhou."
+        exc_codes = exc.get_codes()
+        if exc_codes == "invalid_credentials":
+            message = "Credenciais invalidas."
+        elif exc_codes == "refresh_missing":
+            message = "Refresh token ausente."
+        elif exc_codes == "invalid_refresh":
+            message = "Refresh token invalido, expirado ou revogado."
+        else:
+            message = "Token invalido ou expirado."
+        response.data = _payload(status.HTTP_401_UNAUTHORIZED, code=code, message=message)
+        response.data["errors"] = None
+        return response
+
+    if isinstance(exc, exceptions.PermissionDenied) and exc.get_codes() == "csrf_failed":
+        response.data = _payload(
+            status.HTTP_403_FORBIDDEN,
+            code="csrf_failed",
+            message="CSRF ausente ou invalido.",
+        )
+        response.data["errors"] = None
+        return response
+
     if isinstance(exc, Http404):
         response.data = _payload(status.HTTP_404_NOT_FOUND)
         return response

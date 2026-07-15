@@ -5,7 +5,9 @@ dj-database-url==3.1.0
 Django==6.0.1
 django-crispy-forms==2.5
 django-filter==26.1
+django-cors-headers==4.9.0
 djangorestframework==3.17.1
+djangorestframework-simplejwt==5.5.1
 drf-spectacular==0.30.0
 gunicorn==23.0.0
 inflection==0.5.1

@@ -8,12 +8,11 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from apps.leads.models import Lead
 
 from .filters import LeadFilter, StrictOrderingFilter
-from .serializers import CurrentUserSerializer, LeadSerializer
+from .serializers import LeadSerializer
 
 
 @extend_schema(auth=[], responses={200: OpenApiResponse(description="API saudavel.")})
@@ -21,14 +20,6 @@ from .serializers import CurrentUserSerializer, LeadSerializer
 @permission_classes([AllowAny])
 def health(request):
     return Response({"status": "ok"})
-
-
-class CurrentUserView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    @extend_schema(responses=CurrentUserSerializer)
-    def get(self, request):
-        return Response(CurrentUserSerializer(request.user).data)
 
 
 class LeadViewSet(viewsets.ModelViewSet):
