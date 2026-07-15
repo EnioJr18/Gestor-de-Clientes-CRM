@@ -24,3 +24,5 @@ A futura SPA React precisa autenticar chamadas cross-origin sem remover o fronte
 Rotacionar `SECRET_KEY` invalida todos os JWT. O frontend deve serializar refreshes concorrentes. A blacklist adiciona tabelas e exige limpeza periodica com `flushexpiredtokens`. O throttling em cache local nao e global entre replicas.
 
 A compatibilidade da biblioteca foi validada por imports, emissao, autenticacao, refresh, usuario inativo, rotacao, blacklist, CRUD JWT, CORS, CSRF, OpenAPI e suite PostgreSQL 18. Isso reduz o risco, mas nao converte a combinacao em oficialmente suportada; upgrades devem repetir a prova.
+
+A Sprint 10 implementou o consumidor desta decisao: access token em memoria, bootstrap por refresh cookie, CSRF em memoria, refresh serializado e logout com limpeza local obrigatoria.

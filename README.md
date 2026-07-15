@@ -46,7 +46,7 @@ CRM_Portfolio/
 │   ├── manage.py
 │   └── requirements.txt
 ├── docs/
-└── frontend/  # futuro
+└── frontend/  # SPA React + TypeScript
 ```
 
 ## API REST
@@ -66,7 +66,7 @@ A API v1 esta disponivel em:
 /api/redoc/
 ```
 
-A API aceita JWT Bearer para a futura SPA e preserva sessao Django para o frontend legado. O access token curto e retornado no JSON; o refresh token fica somente em cookie HttpOnly, rotaciona a cada uso e e revogado por blacklist. Refresh e logout exigem CSRF.
+A API aceita JWT Bearer para a SPA React e preserva sessao Django para o frontend legado. O access token curto fica somente em memoria no browser; o refresh token fica em cookie HttpOnly, rotaciona a cada uso e e revogado por blacklist. Refresh e logout exigem CSRF.
 
 Origens CORS sao explicitas em `CORS_ALLOWED_ORIGINS`; wildcard nao e aceito. Configure separadamente `CSRF_TRUSTED_ORIGINS` para origens autorizadas a enviar cookies.
 
@@ -157,6 +157,25 @@ Você pode testar o sistema funcionando em tempo real clicando no link abaixo:
 
 10. **Acesse**
 http://127.0.0.1:8000/
+
+## SPA React
+
+Configure `frontend/.env` a partir de `frontend/.env.example`, mantendo o backend em `http://localhost:8000` e liberando `http://localhost:5173` nas variaveis `CORS_ALLOWED_ORIGINS` e `CSRF_TRUSTED_ORIGINS` do backend.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Validacao do frontend:
+
+```bash
+npm run lint
+npm run typecheck
+npm run test:run
+npm run build
+```
 
 
 

@@ -137,6 +137,14 @@ Criterio para avancar:
 
 ## Fase 5 - Frontend
 
+Estado:
+
+- fundacao React + TypeScript concluida na Sprint 10;
+- login, logout, bootstrap, refresh serializado e rotas protegidas implementados;
+- access token somente em memoria e refresh somente HttpOnly;
+- TanStack Query e Context instalados; Zustand permanece ausente;
+- CRUD visual, dashboard e demais features continuam pendentes.
+
 Escopo:
 
 - React;

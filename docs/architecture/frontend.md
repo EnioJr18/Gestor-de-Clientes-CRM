@@ -2,7 +2,7 @@
 
 ## Estilo
 
-O frontend sera uma SPA separada com React, TypeScript, Vite e Tailwind CSS. A organizacao sera por features para manter codigo de dominio proximo de seus componentes, hooks, schemas, tipos e chamadas de API.
+O frontend e uma SPA separada com React, TypeScript, Vite e Tailwind CSS. A organizacao por features mantem codigo de dominio proximo de seus componentes, hooks, schemas, tipos e chamadas de API.
 
 Stack planejada:
 
@@ -117,7 +117,7 @@ Nao usar reload de pagina para atualizar dados.
 
 `useState` deve ser usado para modal, dropdown, sidebar movel, selecao temporaria e estado local simples.
 
-Zustand nao sera instalado inicialmente. Entrara somente se houver estado global de interface, preferencia persistente, multiplas features dependendo do mesmo estado local ou necessidade nao resolvida por Context, URL ou TanStack Query.
+Zustand nao foi instalado na fundacao. Entrara somente se houver estado global de interface, preferencia persistente, multiplas features dependendo do mesmo estado local ou necessidade nao resolvida por Context, URL ou TanStack Query.
 
 Zustand nao deve duplicar dados da API.
 
@@ -162,6 +162,16 @@ Chamadas Axios nao devem ficar espalhadas em componentes. Devem viver em `featur
 - Nunca ler nem persistir o refresh token: o backend o mantem em cookie HttpOnly.
 - Serializar tentativas de refresh; duas requisicoes concorrentes com o mesmo refresh fazem a primeira vencer e a segunda falhar apos a blacklist.
 - Ao recarregar a pagina, recuperar uma sessao da SPA por um unico refresh controlado, sem `localStorage` para access token.
+
+Implementacao da Sprint 10:
+
+- `AuthProvider` usa Context para usuario e estado de bootstrap;
+- access token vive somente no modulo `tokenStore` em memoria;
+- uma unica `refreshPromise` serializa renovacoes concorrentes;
+- Axios repete cada requisicao no maximo uma vez e nao tenta renovar endpoints de auth;
+- respostas criticas de login, refresh, CSRF, usuario e erro sao validadas com Zod;
+- TanStack Query gerencia dados remotos, sem guardar a sessao inteira no cache;
+- `/login`, `/app`, rota protegida, rota publica e 404 formam o roteamento inicial.
 
 ## Tipagem
 

@@ -41,7 +41,7 @@ O backend sempre e a fonte final de validacao. Validacao no frontend melhora UX,
 
 ## Autenticacao JWT para SPA
 
-- Access token HS256 de 5 minutos no JSON, mantido apenas em memoria pela futura SPA.
+- Access token HS256 de 5 minutos no JSON, mantido apenas em memoria pela SPA; nenhum acesso a `localStorage` ou `sessionStorage` e usado para autenticacao.
 - Refresh token de 7 dias somente em cookie HttpOnly, Path `/api/v1/auth/`, SameSite configuravel e Secure obrigatorio em producao.
 - Rotacao e blacklist a cada refresh; logout revoga o token corrente.
 - O segredo padrao e `SECRET_KEY`; rotaciona-lo invalida todos os JWT existentes.
@@ -49,6 +49,8 @@ O backend sempre e a fonte final de validacao. Validacao no frontend melhora UX,
 - Login e refresh rejeitam usuario inativo e usam mensagem generica contra enumeracao.
 - Throttling local por IP: login 5/min, refresh 20/min e CSRF 60/min, todos configuraveis. Cache local nao coordena limites entre multiplas instancias; Redis continua fora desta sprint.
 - A sessao Django permanece ativa e continua exigindo CSRF para escrita.
+- O bootstrap obtem CSRF, tenta refresh uma vez e consulta `users/me` antes de liberar rotas.
+- Refreshes concorrentes compartilham uma unica promessa; falha definitiva limpa usuario e access token sem loop de retry.
 
 ## API REST atual
 

@@ -26,6 +26,9 @@ def import_settings(module, extra_env=None):
     env.pop("DEBUG", None)
     env.pop("USE_SQLITE", None)
     env.pop("USE_SQLITE_FOR_TESTS", None)
+    env.pop("CORS_ALLOWED_ORIGINS", None)
+    env.pop("CSRF_TRUSTED_ORIGINS", None)
+    env.pop("SPA_ENABLED", None)
     if extra_env:
         env.update(extra_env)
 
@@ -49,6 +52,9 @@ def run_settings_code(module, code, extra_env=None):
     env.pop("DEBUG", None)
     env.pop("USE_SQLITE", None)
     env.pop("USE_SQLITE_FOR_TESTS", None)
+    env.pop("CORS_ALLOWED_ORIGINS", None)
+    env.pop("CSRF_TRUSTED_ORIGINS", None)
+    env.pop("SPA_ENABLED", None)
     if extra_env:
         env.update(extra_env)
 
@@ -221,11 +227,15 @@ class EnvironmentSettingsTests(SimpleTestCase):
         self.assertIn("False\nFalse\nFalse", result.stdout)
         self.assertIn("127.0.0.1", result.stdout)
 
-    def test_development_defaults_to_explicit_vite_origin(self):
+    def test_development_accepts_explicit_vite_origin_from_environment(self):
         result = run_settings_code(
             "config.settings.development",
             "print(','.join(CORS_ALLOWED_ORIGINS)); print(','.join(CSRF_TRUSTED_ORIGINS))",
-            {"DATABASE_URL": "postgres://user:pass@localhost:5432/crm_pro"},
+            {
+                "DATABASE_URL": "postgres://user:pass@localhost:5432/crm_pro",
+                "CORS_ALLOWED_ORIGINS": "http://localhost:5173",
+                "CSRF_TRUSTED_ORIGINS": "http://localhost:5173",
+            },
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.count("http://localhost:5173"), 2)
