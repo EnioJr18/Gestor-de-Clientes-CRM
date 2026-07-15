@@ -1,0 +1,10 @@
+export const leadStatuses = ['NOVO', 'EM_NEGOCIACAO', 'PROPOSTA_ENVIADA', 'VENDIDO', 'PERDIDO'] as const
+export const leadPriorities = ['BAIXA', 'MEDIA', 'ALTA'] as const
+export type LeadStatus = (typeof leadStatuses)[number]
+export type LeadPriority = (typeof leadPriorities)[number]
+export type Lead = { id: number; nome: string; sobrenome: string | null; email: string; telefone: string | null; status: LeadStatus; prioridade: LeadPriority; criado_em: string; atualizado_em: string }
+export type LeadListResponse = { count: number; next: string | null; previous: string | null; results: Lead[] }
+export type CreateLeadPayload = Pick<Lead, 'nome' | 'sobrenome' | 'email' | 'telefone' | 'status' | 'prioridade'>
+export type UpdateLeadPayload = Partial<CreateLeadPayload>
+export type LeadOrdering = 'nome' | '-nome' | 'email' | '-email' | 'status' | '-status' | 'prioridade' | '-prioridade' | 'criado_em' | '-criado_em' | 'atualizado_em' | '-atualizado_em'
+export type LeadFilters = { page: number; pageSize: number; search?: string; status?: LeadStatus; prioridade?: LeadPriority; criadoEmDe?: string; criadoEmAte?: string; ordering?: LeadOrdering }

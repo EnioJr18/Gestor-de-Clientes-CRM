@@ -144,6 +144,7 @@ Estado:
 - access token somente em memoria e refresh somente HttpOnly;
 - TanStack Query e Context instalados; Zustand permanece ausente;
 - CRUD visual, dashboard e demais features continuam pendentes.
+- Sprint 11 concluiu o CRUD visual de leads, incluindo URL como estado, invalidacao seletiva do cache e paginas responsivas de lista e detalhe.
 
 Escopo:
 

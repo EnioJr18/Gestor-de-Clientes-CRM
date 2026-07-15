@@ -107,6 +107,8 @@ Cobrir:
 
 Nao testar detalhes internos de bibliotecas.
 
+Para leads na SPA, cobrir listagem, estados loading/vazio/erro, filtros na URL, formularios, mutacoes e 404 com MSW quando a suite da feature for expandida.
+
 Exemplo de comportamento:
 
 > Apos criar um lead, a listagem deve exibir o novo registro sem recarregar a pagina.

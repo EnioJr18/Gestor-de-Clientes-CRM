@@ -1,0 +1,15 @@
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { leadFormSchema, toLeadPayload, type LeadFormValues } from '../schemas/leadSchema'
+import { leadPriorities, leadStatuses, type Lead } from '../types/lead'
+import { priorityLabels, statusLabels } from '../utils/leadFormatters'
+import type { ApiError } from '../../auth/types/auth'
+const defaults: LeadFormValues = { nome: '', sobrenome: '', email: '', telefone: '', status: 'NOVO', prioridade: 'MEDIA' }
+export function LeadForm({ lead, submitting, error, onSubmit, onCancel }: { lead?: Lead; submitting: boolean; error: ApiError | null; onSubmit: (values: ReturnType<typeof toLeadPayload>) => void; onCancel: () => void }) {
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<LeadFormValues>({ resolver: zodResolver(leadFormSchema), defaultValues: defaults })
+  useEffect(() => reset(lead ? { nome: lead.nome, sobrenome: lead.sobrenome || '', email: lead.email, telefone: lead.telefone || '', status: lead.status, prioridade: lead.prioridade } : defaults), [lead, reset])
+  const fieldError = (field: keyof LeadFormValues) => errors[field]?.message || error?.errors?.[field]?.[0]
+  return <form className="space-y-4" onSubmit={handleSubmit((values) => onSubmit(toLeadPayload(values)))} noValidate><div className="grid gap-4 sm:grid-cols-2"><Field label="Nome" error={fieldError('nome')}><input className="field-input" {...register('nome')} autoFocus /></Field><Field label="Sobrenome" error={fieldError('sobrenome')}><input className="field-input" {...register('sobrenome')} /></Field></div><Field label="E-mail" error={fieldError('email')}><input className="field-input" type="email" {...register('email')} /></Field><Field label="Telefone" error={fieldError('telefone')}><input className="field-input" {...register('telefone')} /></Field><div className="grid gap-4 sm:grid-cols-2"><Field label="Status" error={fieldError('status')}><select className="field-input" {...register('status')}>{leadStatuses.map((status) => <option key={status} value={status}>{statusLabels[status]}</option>)}</select></Field><Field label="Prioridade" error={fieldError('prioridade')}><select className="field-input" {...register('prioridade')}>{leadPriorities.map((priority) => <option key={priority} value={priority}>{priorityLabels[priority]}</option>)}</select></Field></div>{error && !error.errors && <p className="field-error" role="alert">{error.message}</p>}<div className="flex justify-end gap-3"><button className="secondary-button" type="button" disabled={submitting} onClick={onCancel}>Cancelar</button><button className="primary-button w-auto" type="submit" disabled={submitting}>{submitting ? 'Salvando...' : lead ? 'Salvar alteracoes' : 'Criar lead'}</button></div></form>
+}
+function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) { return <label><span className="field-label">{label}</span>{children}{error && <span className="field-error" role="alert">{error}</span>}</label> }

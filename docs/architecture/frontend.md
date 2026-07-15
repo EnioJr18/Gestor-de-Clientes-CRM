@@ -67,6 +67,10 @@ features/leads/
 
 Nem toda subpasta deve ser criada antecipadamente. Criar apenas quando houver uso real.
 
+## Leads na Sprint 11
+
+`features/leads` implementa CRUD visual com Zod, React Hook Form, TanStack Query e Axios centralizado. Busca, filtros, ordenacao e paginacao ficam em `useSearchParams`; dialogs atendem criacao/edicao/exclusao e a pagina de detalhe cobre 404. Nenhum token e persistido e Zustand continua ausente.
+
 ## Componentes compartilhados
 
 `components/ui` deve conter apenas componentes reutilizaveis:

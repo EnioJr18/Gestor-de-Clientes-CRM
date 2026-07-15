@@ -27,4 +27,13 @@
   .primary-button { @apply flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 font-semibold text-white shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60; }
   .secondary-button { @apply inline-flex items-center gap-2 rounded-xl border border-line bg-panel px-4 py-2 text-sm font-medium text-strong transition hover:bg-canvas; }
   .placeholder-card { @apply rounded-2xl border border-line bg-panel p-7 shadow-sm; }
+  .nav-link { @apply flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-muted hover:bg-canvas hover:text-strong [&.active]:bg-brand-soft [&.active]:text-brand; }
+  .badge { @apply inline-flex rounded-full px-2.5 py-1 text-xs font-semibold; }
+  .badge-status { @apply bg-brand-soft text-brand; } .badge-priority { @apply bg-canvas text-strong; }
+  .icon-button { @apply inline-flex rounded-lg border border-line p-2 text-strong hover:bg-canvas; }
+  .lead-card, .state-card { @apply rounded-2xl border border-line bg-panel p-5 shadow-sm; }
+  .dialog-backdrop { @apply fixed inset-0 z-50 grid place-items-center bg-strong/35 p-4; }
+  .dialog-panel { @apply max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-panel p-6 shadow-xl; }
+  .danger-button { @apply inline-flex items-center justify-center gap-2 rounded-xl bg-danger px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60; }
+  .skeleton { @apply animate-pulse rounded-2xl bg-line; }
 }

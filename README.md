@@ -177,6 +177,20 @@ npm run test:run
 npm run build
 ```
 
+### Gestao visual de leads
+
+A SPA possui login JWT com access token somente em memoria e refresh em cookie HttpOnly. Apos autenticar, use `/app/leads` para listar, buscar, filtrar, ordenar, paginar, criar, editar, visualizar e excluir leads sem recarregar a pagina. Os filtros permanecem na URL.
+
+Configure `frontend/.env` com:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000/api/v1
+```
+
+Use `localhost` de forma consistente no backend e no Vite para que CORS, CSRF e o cookie de refresh tenham a mesma origem esperada. O PostgreSQL local e iniciado com `docker compose up -d postgres`; crie um administrador com `python backend/manage.py createsuperuser`.
+
+Estado atual: autenticacao SPA e gestao de leads estao implementadas. Dashboard completo, interacoes, perfil editavel, relatorios e exportacao permanecem pendentes.
+
 
 
 ## 🤝 Contribuição
