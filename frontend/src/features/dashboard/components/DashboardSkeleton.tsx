@@ -1,0 +1,1 @@
+export function DashboardSkeleton() { return <section aria-busy="true" aria-label="Carregando dashboard"><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">{[1, 2, 3, 4, 5].map((item) => <div className="skeleton h-36" key={item} />)}</div><div className="mt-6 grid gap-6 lg:grid-cols-2"><div className="skeleton h-96" /><div className="skeleton h-96" /></div></section> }

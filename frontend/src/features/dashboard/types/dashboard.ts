@@ -1,0 +1,12 @@
+export const dashboardPeriodKeys = ['7d', '30d', '90d', '12m', 'custom'] as const
+export const dashboardStatuses = ['NOVO', 'EM_NEGOCIACAO', 'PROPOSTA_ENVIADA', 'VENDIDO', 'PERDIDO'] as const
+export const dashboardPriorities = ['BAIXA', 'MEDIA', 'ALTA'] as const
+export type DashboardPeriodKey = (typeof dashboardPeriodKeys)[number]
+export type DashboardPeriod = { key: DashboardPeriodKey; date_from: string; date_to: string }
+export type DashboardMetrics = { total_leads: number; created_today: number; created_in_period: number; converted_in_period: number; conversion_rate: number }
+export type DashboardStatusItem = { status: (typeof dashboardStatuses)[number]; label: string; count: number }
+export type DashboardPriorityItem = { priority: (typeof dashboardPriorities)[number]; label: string; count: number }
+export type DashboardEvolutionItem = { month: string; label: string; count: number }
+export type DashboardRecentLead = { id: number; nome: string; sobrenome: string | null; email: string; status: DashboardStatusItem['status']; prioridade: DashboardPriorityItem['priority']; criado_em: string }
+export type DashboardSummary = { period: DashboardPeriod; metrics: DashboardMetrics; by_status: DashboardStatusItem[]; by_priority: DashboardPriorityItem[]; monthly_evolution: DashboardEvolutionItem[]; recent_leads: DashboardRecentLead[] }
+export type DashboardFilters = { period: DashboardPeriodKey; date_from?: string; date_to?: string }

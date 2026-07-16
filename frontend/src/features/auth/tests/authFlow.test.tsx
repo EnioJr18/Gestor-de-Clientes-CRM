@@ -19,13 +19,13 @@ describe('bootstrap e rotas', () => {
     )
     renderApp('/app')
     expect(screen.getByRole('status')).toHaveTextContent('Validando sua sessao')
-    expect(await screen.findByRole('heading', { name: /Ola, Ana/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
   })
 
   it('restaura a sessao pelo refresh e users/me', async () => {
     mockAuthenticatedBootstrap()
     renderApp('/app')
-    expect(await screen.findByText('Sessao autenticada')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
     expect(getAccessToken()).toBe('boot-access')
   })
 
@@ -38,7 +38,7 @@ describe('bootstrap e rotas', () => {
   it('redireciona usuario autenticado para fora do login', async () => {
     mockAuthenticatedBootstrap()
     renderApp('/login')
-    expect(await screen.findByText('Sessao autenticada')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
   })
 
   it('exibe fallback 404', () => {
@@ -76,7 +76,7 @@ describe('login', () => {
     await userEvent.type(screen.getByLabelText('Usuario'), 'ana')
     await userEvent.type(screen.getByLabelText('Senha'), 'segredo')
     await userEvent.click(screen.getByRole('button', { name: 'Entrar' }))
-    expect(await screen.findByRole('heading', { name: /Ola, Ana/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
     expect(getAccessToken()).toBe('login-access')
     expect(localStorage.length).toBe(0)
     expect(sessionStorage.length).toBe(0)
@@ -114,7 +114,7 @@ describe('login', () => {
     await userEvent.type(screen.getByLabelText('Senha'), 'segredo')
     await userEvent.click(screen.getByRole('button', { name: 'Entrar' }))
     expect(screen.getByRole('button', { name: 'Entrando...' })).toBeDisabled()
-    expect(await screen.findByText('Sessao autenticada')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
   })
 
   it('rejeita resposta de login invalida sem guardar token', async () => {
@@ -141,7 +141,7 @@ describe('logout', () => {
       }),
     )
     renderApp('/app')
-    await screen.findByText('Sessao autenticada')
+    await screen.findByRole('heading', { name: 'Dashboard' })
     await userEvent.click(screen.getByRole('button', { name: 'Sair' }))
     expect(await screen.findByRole('heading', { name: 'Entre na sua conta' })).toBeInTheDocument()
     expect(csrfHeader).toBe('csrf-test')
@@ -152,7 +152,7 @@ describe('logout', () => {
     mockAuthenticatedBootstrap()
     server.use(http.post(`${apiBaseUrl}/auth/logout/`, () => new HttpResponse(null, { status: 401 })))
     renderApp('/app')
-    await screen.findByText('Sessao autenticada')
+    await screen.findByRole('heading', { name: 'Dashboard' })
     await userEvent.click(screen.getByRole('button', { name: 'Sair' }))
     expect(await screen.findByRole('heading', { name: 'Entre na sua conta' })).toBeInTheDocument()
     expect(getAccessToken()).toBeNull()

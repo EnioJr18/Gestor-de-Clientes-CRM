@@ -11,6 +11,7 @@ export const testUser: User = {
   last_name: 'Silva',
   email: 'ana@example.com',
 }
+const dashboardSummary = { period: { key: '30d', date_from: '2026-06-16', date_to: '2026-07-15' }, metrics: { total_leads: 0, created_today: 0, created_in_period: 0, converted_in_period: 0, conversion_rate: 0 }, by_status: [], by_priority: [], monthly_evolution: [], recent_leads: [] }
 
 export function mockUnauthenticatedBootstrap() {
   server.use(
@@ -36,5 +37,6 @@ export function mockAuthenticatedBootstrap() {
       }
       return HttpResponse.json(testUser)
     }),
+    http.get(`${apiBaseUrl}/dashboard/summary/`, () => HttpResponse.json(dashboardSummary)),
   )
 }

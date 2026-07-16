@@ -12,4 +12,8 @@ Os periodos permitidos sao `7d`, `30d`, `90d`, `12m` e `custom`. O periodo custo
 
 ## Consequencias
 
-O endpoint preserva o isolamento e evita transferir todos os leads para a SPA. Consultas passam a depender do volume de leads de um usuario; antes de adicionar cache ou pre-agregacoes, o projeto deve observar metricas e planos de execucao em PostgreSQL. A implementacao nao exige migration e nao altera contratos de CRUD de leads. Esta ADR documenta somente o backend; nao afirma que interface ou graficos foram implementados.
+O endpoint preserva o isolamento e evita transferir todos os leads para a SPA. Consultas passam a depender do volume de leads de um usuario; antes de adicionar cache ou pre-agregacoes, o projeto deve observar metricas e planos de execucao em PostgreSQL. A implementacao nao exige migration e nao altera contratos de CRUD de leads.
+
+## Implementacao na SPA
+
+A Sprint 12.2 implementa `features/dashboard` com tipos, Zod, query keys e TanStack Query. O periodo e estado de URL; Chart.js renderiza evolucao e status com alternativas textuais. Criar, editar ou excluir lead invalida apenas as listas, detalhe correspondente e `dashboardQueryKeys.all`. Nao ha Zustand, persistencia de tokens ou reload. Refinamento visual e animacoes avancadas continuam pendentes para a Sprint 12.3.

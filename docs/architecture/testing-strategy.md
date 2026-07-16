@@ -113,6 +113,8 @@ Para leads na SPA, cobrir listagem, estados loading/vazio/erro, filtros na URL, 
 
 O endpoint `GET /api/v1/dashboard/summary/` deve cobrir autenticacao, isolamento entre usuarios, totais, conversao sem divisao por zero, limites de recentes, periodo custom inclusivo, meses sem dados e parametros invalidos. Os testes de API usam PostgreSQL de teste e datas controladas pelas factories para evitar dependencia do relogio real.
 
+No frontend, MSW cobre a resposta do resumo, URL de periodo, filtro personalizado, estado vazio, resposta Zod invalida e retry. Graficos sao testados por seus dados e alternativas textuais, sem testar internals do Chart.js.
+
 Exemplo de comportamento:
 
 > Apos criar um lead, a listagem deve exibir o novo registro sem recarregar a pagina.

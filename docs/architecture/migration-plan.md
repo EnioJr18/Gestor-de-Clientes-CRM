@@ -206,3 +206,5 @@ Criterio para avancar:
 ## Dashboard analitico inicial
 
 A Sprint 12.1 entrega somente um endpoint agregado sobre a tabela existente de leads. Ela nao cria tabelas, migrations, cache compartilhado ou tarefas assincronas. Se consultas reais demonstrarem necessidade, a proxima evolucao deve medir os planos no PostgreSQL antes de introduzir cache ou materializacao.
+
+A Sprint 12.2 consome esse endpoint na SPA e tambem nao cria migrations. Mutations de leads invalidam a chave `dashboardQueryKeys.all`, mantendo os indicadores atualizados sem reload.

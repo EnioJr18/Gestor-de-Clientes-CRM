@@ -1,0 +1,2 @@
+import { RefreshCw } from 'lucide-react'
+export function DashboardErrorState({ message, onRetry }: { message: string; onRetry: () => void }) { return <section className="state-card" role="alert"><h1 className="text-2xl font-semibold text-strong">Nao foi possivel carregar o dashboard</h1><p className="mt-2 text-muted">{message}</p><button className="secondary-button mt-5" type="button" onClick={onRetry}><RefreshCw className="size-4" aria-hidden="true" />Tentar novamente</button></section> }

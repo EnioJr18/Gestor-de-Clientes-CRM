@@ -1,0 +1,5 @@
+import { Bar } from 'react-chartjs-2'
+import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Tooltip } from 'chart.js'
+import type { DashboardEvolutionItem } from '../types/dashboard'
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
+export function LeadsEvolutionChart({ items }: { items: DashboardEvolutionItem[] }) { const values = items.map((item) => item.count); return <article className="lead-card"><h2 className="text-lg font-semibold text-strong">Evolucao mensal</h2><p className="mt-1 text-sm text-muted">Leads criados em cada mes do periodo.</p><div className="mt-5 h-72"><Bar aria-label="Grafico de evolucao mensal" data={{ labels: items.map((item) => item.label), datasets: [{ label: 'Leads criados', data: values, backgroundColor: '#3157d5', borderRadius: 6 }] }} options={{ responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }} /></div><dl className="sr-only">{items.map((item) => <div key={item.month}><dt>{item.label}</dt><dd>{item.count} leads criados</dd></div>)}</dl></article> }

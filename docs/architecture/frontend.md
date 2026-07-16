@@ -177,6 +177,12 @@ Implementacao da Sprint 10:
 - TanStack Query gerencia dados remotos, sem guardar a sessao inteira no cache;
 - `/login`, `/app`, rota protegida, rota publica e 404 formam o roteamento inicial.
 
+## Dashboard
+
+A feature `features/dashboard` consome `GET /dashboard/summary/` pelo cliente Axios centralizado. Tipos estritos e schemas Zod validam o contrato antes de renderizar cards, graficos e leads recentes. `dashboardQueryKeys` concentra as chaves e o hook TanStack Query preserva dados anteriores durante a troca de periodo.
+
+`/app?period=30d` e a fonte de estado. Sao aceitos `7d`, `30d`, `90d`, `12m` e `custom` com as duas datas ISO; URLs invalidas retornam ao periodo padrao. Chart.js e `react-chartjs-2` renderizam evolucao mensal e status, enquanto listas textuais mantem os dados disponiveis fora do canvas. O refinamento visual e animacoes avancadas permanecem planejados para a Sprint 12.3.
+
 ## Tipagem
 
 Separar:
