@@ -61,12 +61,15 @@ A API v1 esta disponivel em:
 /api/v1/auth/logout/
 /api/v1/users/me/
 /api/v1/leads/
+/api/v1/dashboard/summary/
 /api/schema/
 /api/docs/
 /api/redoc/
 ```
 
 A API aceita JWT Bearer para a SPA React e preserva sessao Django para o frontend legado. O access token curto fica somente em memoria no browser; o refresh token fica em cookie HttpOnly, rotaciona a cada uso e e revogado por blacklist. Refresh e logout exigem CSRF.
+
+`GET /api/v1/dashboard/summary/` exige autenticacao e retorna apenas metricas dos leads do usuario autenticado. Aceita `period=7d|30d|90d|12m` ou `period=custom&date_from=YYYY-MM-DD&date_to=YYYY-MM-DD`; o intervalo personalizado e inclusivo e limitado a 366 dias. O contrato completo esta no OpenAPI em `/api/schema/`.
 
 Origens CORS sao explicitas em `CORS_ALLOWED_ORIGINS`; wildcard nao e aceito. Configure separadamente `CSRF_TRUSTED_ORIGINS` para origens autorizadas a enviar cookies.
 

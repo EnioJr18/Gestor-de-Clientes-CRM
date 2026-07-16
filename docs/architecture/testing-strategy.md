@@ -109,6 +109,10 @@ Nao testar detalhes internos de bibliotecas.
 
 Para leads na SPA, cobrir listagem, estados loading/vazio/erro, filtros na URL, formularios, mutacoes e 404 com MSW quando a suite da feature for expandida.
 
+## Dashboard analitico
+
+O endpoint `GET /api/v1/dashboard/summary/` deve cobrir autenticacao, isolamento entre usuarios, totais, conversao sem divisao por zero, limites de recentes, periodo custom inclusivo, meses sem dados e parametros invalidos. Os testes de API usam PostgreSQL de teste e datas controladas pelas factories para evitar dependencia do relogio real.
+
 Exemplo de comportamento:
 
 > Apos criar um lead, a listagem deve exibir o novo registro sem recarregar a pagina.

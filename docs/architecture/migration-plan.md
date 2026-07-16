@@ -202,3 +202,7 @@ Criterio para avancar:
 - dominio;
 - observabilidade;
 - AWS.
+
+## Dashboard analitico inicial
+
+A Sprint 12.1 entrega somente um endpoint agregado sobre a tabela existente de leads. Ela nao cria tabelas, migrations, cache compartilhado ou tarefas assincronas. Se consultas reais demonstrarem necessidade, a proxima evolucao deve medir os planos no PostgreSQL antes de introduzir cache ou materializacao.

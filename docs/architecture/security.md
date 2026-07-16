@@ -63,6 +63,10 @@ Endpoints publicos nesta sprint:
 
 Endpoints de dados exigem usuario autenticado. Leads sao sempre filtrados por `agente_responsavel=request.user`; leads alheios retornam 404 para evitar IDOR.
 
+O resumo do dashboard aplica o mesmo escopo antes de qualquer agregacao. A resposta de recentes nao inclui `agente_responsavel`, e parametros de periodo invalidos retornam erro de validacao sem revelar dados de outros usuarios.
+
+Sessao e JWT recusam usuarios inativos: uma sessao existente nao permanece valida depois da desativacao do usuario.
+
 ## XSS e erros
 
 - Nao expor traceback em producao.

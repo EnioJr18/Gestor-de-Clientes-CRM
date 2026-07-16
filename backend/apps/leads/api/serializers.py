@@ -4,6 +4,57 @@ from rest_framework import serializers
 from apps.leads.models import Lead
 
 
+class DashboardPeriodSerializer(serializers.Serializer):
+    key = serializers.CharField()
+    date_from = serializers.DateField()
+    date_to = serializers.DateField()
+
+
+class DashboardMetricsSerializer(serializers.Serializer):
+    total_leads = serializers.IntegerField()
+    created_today = serializers.IntegerField()
+    created_in_period = serializers.IntegerField()
+    converted_in_period = serializers.IntegerField()
+    conversion_rate = serializers.FloatField()
+
+
+class DashboardStatusSerializer(serializers.Serializer):
+    status = serializers.CharField()
+    label = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class DashboardPrioritySerializer(serializers.Serializer):
+    priority = serializers.CharField()
+    label = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class DashboardEvolutionSerializer(serializers.Serializer):
+    month = serializers.CharField()
+    label = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class DashboardRecentLeadSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    nome = serializers.CharField()
+    sobrenome = serializers.CharField(allow_null=True)
+    email = serializers.EmailField()
+    status = serializers.CharField()
+    prioridade = serializers.CharField()
+    criado_em = serializers.DateTimeField()
+
+
+class DashboardSummarySerializer(serializers.Serializer):
+    period = DashboardPeriodSerializer()
+    metrics = DashboardMetricsSerializer()
+    by_status = DashboardStatusSerializer(many=True)
+    by_priority = DashboardPrioritySerializer(many=True)
+    monthly_evolution = DashboardEvolutionSerializer(many=True)
+    recent_leads = DashboardRecentLeadSerializer(many=True)
+
+
 class StrictFieldsMixin:
     protected_fields = set()
 

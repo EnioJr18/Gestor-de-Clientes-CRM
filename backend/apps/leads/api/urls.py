@@ -2,6 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from apps.accounts.api.views import CurrentUserView
+from .dashboard import dashboard_summary
 from .views import LeadViewSet, health
 
 
@@ -13,5 +14,6 @@ app_name = "api_v1"
 urlpatterns = [
     path("health/", health, name="health"),
     path("users/me/", CurrentUserView.as_view(), name="users_me"),
+    path("dashboard/summary/", dashboard_summary, name="dashboard-summary"),
     path("", include(router.urls)),
 ]

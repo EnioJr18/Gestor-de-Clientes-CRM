@@ -1,11 +1,17 @@
 from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from rest_framework.authentication import CSRFCheck, SessionAuthentication
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 
 
 class ApiSessionAuthentication(SessionAuthentication):
     def authenticate_header(self, request):
         return "Session"
+
+    def authenticate(self, request):
+        authenticated = super().authenticate(request)
+        if authenticated is not None and not authenticated[0].is_active:
+            raise AuthenticationFailed("Usuario inativo.", code="authentication_failed")
+        return authenticated
 
 
 class PublicAuthEndpointAuthentication:
