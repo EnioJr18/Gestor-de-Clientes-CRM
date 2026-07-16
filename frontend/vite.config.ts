@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig(({ mode }) => ({
   plugins: [react(), tailwindcss()],
+  build: { rollupOptions: { output: { manualChunks: (moduleId) => moduleId.includes('chart.js') || moduleId.includes('react-chartjs-2') ? 'chart' : undefined } } },
   define:
     mode === 'test'
       ? {

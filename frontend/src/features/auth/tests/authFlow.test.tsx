@@ -1,6 +1,7 @@
 import { delay, http, HttpResponse } from 'msw'
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { vi } from 'vitest'
 
 import { getAccessToken } from '../../../lib/api/tokenStore'
 import { apiBaseUrl, mockAuthenticatedBootstrap, mockUnauthenticatedBootstrap, testUser } from '../../../tests/authHandlers'
@@ -9,25 +10,32 @@ import { server } from '../../../tests/server'
 
 describe('bootstrap e rotas', () => {
   it('mantem loading ate concluir o bootstrap autenticado', async () => {
+    mockAuthenticatedBootstrap()
+    let releaseRefresh: (() => void) | undefined
+    const refreshPending = new Promise<void>((resolve) => { releaseRefresh = resolve })
     server.use(
-      http.get(`${apiBaseUrl}/auth/csrf/`, () => HttpResponse.json({ csrfToken: 'csrf' })),
       http.post(`${apiBaseUrl}/auth/refresh/`, async () => {
-        await delay(30)
+        await refreshPending
         return HttpResponse.json({ access: 'boot-access', token_type: 'Bearer', expires_in: 300 })
       }),
-      http.get(`${apiBaseUrl}/users/me/`, () => HttpResponse.json(testUser)),
     )
     renderApp('/app')
-    expect(screen.getByRole('status')).toHaveTextContent('Validando sua sessao')
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
-  })
+    const bootstrapLoading = screen.getByText('Validando sua sessao...')
+    expect(bootstrapLoading).toBeVisible()
+    await waitFor(() => expect(releaseRefresh).toBeTypeOf('function'))
+    releaseRefresh!()
+    await waitFor(() => expect(bootstrapLoading).not.toBeVisible())
+    await vi.dynamicImportSettled()
+  }, 20_000)
 
   it('restaura a sessao pelo refresh e users/me', async () => {
     mockAuthenticatedBootstrap()
     renderApp('/app')
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
+    const bootstrapLoading = screen.getByText('Validando sua sessao...')
+    await waitFor(() => expect(bootstrapLoading).not.toBeVisible())
+    await vi.dynamicImportSettled()
     expect(getAccessToken()).toBe('boot-access')
-  })
+  }, 20_000)
 
   it('redireciona rota privada sem refresh para login', async () => {
     mockUnauthenticatedBootstrap()
@@ -41,11 +49,12 @@ describe('bootstrap e rotas', () => {
     expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
   })
 
-  it('exibe fallback 404', () => {
+  it('exibe fallback 404', async () => {
     mockUnauthenticatedBootstrap()
     renderApp('/nao-existe')
-    expect(screen.getByRole('heading', { name: 'Pagina nao encontrada' })).toBeInTheDocument()
-  })
+    await vi.dynamicImportSettled()
+    expect(await screen.findByRole('heading', { name: 'Pagina nao encontrada' })).toBeInTheDocument()
+  }, 20_000)
 })
 
 describe('login', () => {

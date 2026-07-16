@@ -6,6 +6,15 @@ import { AppRoutes } from '../app/router/AppRoutes'
 import { AuthProvider } from '../features/auth/providers/AuthProvider'
 import { createQueryClient } from '../lib/query/queryClient'
 
+export function renderWithProviders(ui: React.ReactNode, route = '/app') {
+  const queryClient = createQueryClient()
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[route]}><AuthProvider>{ui}</AuthProvider></MemoryRouter>
+    </QueryClientProvider>,
+  )
+}
+
 export function renderApp(initialPath = '/app') {
   const queryClient = createQueryClient()
   return render(
