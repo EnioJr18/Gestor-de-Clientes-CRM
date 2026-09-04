@@ -122,6 +122,7 @@ Rotas iniciais:
 - `GET /api/v1/health/`: publico e sem consulta pesada.
 - `GET /api/v1/users/me/`: usuario autenticado atual.
 - `/api/v1/leads/`: CRUD REST de leads do usuario autenticado.
+- `/api/v1/leads/{lead_id}/interactions/`: CRUD REST do historico do lead, isolado pelo responsavel do lead.
 - `GET /api/v1/dashboard/summary/`: agregacoes analiticas isoladas por usuario.
 - `/api/schema/`, `/api/docs/`, `/api/redoc/`: OpenAPI, Swagger UI e ReDoc.
 
@@ -132,6 +133,8 @@ O Simple JWT 5.5.1 esta fora da matriz oficial para Python 3.14, Django 6.0 e DR
 As migrations aplicadas para blacklist pertencem ao pacote `rest_framework_simplejwt.token_blacklist`. Nenhuma migration de `accounts` ou `leads` foi criada na Sprint 9.
 
 O queryset da API de leads nasce sempre escopado por `agente_responsavel=request.user`. Recursos de outro usuario retornam 404.
+
+As interacoes permanecem no app `leads`: nao possuem proprietario duplicado e derivam seu escopo por `Interaction.lead.agente_responsavel`. A API resolve primeiro o lead dentro do escopo autenticado e depois consulta a interacao nesse lead, evitando IDOR e combinacoes inconsistentes entre IDs. O modelo preserva `nota` e `data_interacao`, agora com `tipo`, `criado_em` e `atualizado_em`; a timeline e ordenada por data/hora decrescente e ID decrescente como desempate.
 
 O resumo analitico tambem nasce de `Lead.objects.filter(agente_responsavel=request.user)`. Ele usa agregacoes no banco para status, prioridade e evolucao mensal, retorna somente os cinco leads mais recentes sem expor o responsavel e aceita os periodos `7d`, `30d`, `90d`, `12m` ou um intervalo `custom` inclusivo de no maximo 366 dias. Categorias de status e prioridade sem registros sao retornadas com `count: 0`, na ordem dos choices. A conversao oficial e `status=VENDIDO`; a taxa e `vendidos_no_periodo / criados_no_periodo * 100`, ou `0.0` sem criacoes. Nenhuma tabela, migration ou cache adicional foi criado para esta primeira versao.
 

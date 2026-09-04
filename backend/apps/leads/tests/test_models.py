@@ -139,6 +139,11 @@ class InteractionModelTest(TestCase):
         with self.assertRaises(ValidationError):
             interaction.full_clean()
 
+    def test_invalid_interaction_type_is_rejected_by_database(self):
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                create_interaction(self.lead, tipo="INVALIDO")
+
     def test_interaction_requires_lead_at_database_level(self):
         with self.assertRaises(IntegrityError):
             Interaction.objects.create(nota="Sem lead")
@@ -152,3 +157,4 @@ class InteractionModelTest(TestCase):
 
         self.assertIn("inter_lead_date_idx", index_names)
         self.assertIn("interaction_nota_not_empty_chk", constraint_names)
+        self.assertIn("interaction_tipo_valid_chk", constraint_names)

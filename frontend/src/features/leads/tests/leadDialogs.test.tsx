@@ -14,13 +14,13 @@ const lead: Lead = { id: 7, nome: 'Maria', sobrenome: 'Souza', email: 'maria@exa
 function renderWithQuery(ui: React.ReactNode) { const client = new QueryClient({ defaultOptions: { queries: { retry: false } } }); return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>) }
 
 describe('detalhes, edicao e exclusao de leads', () => {
-  it('mostra detalhe completo, datas, badges e placeholder', async () => {
+  it('mostra detalhe completo, datas, badges e timeline', async () => {
     server.use(http.get(`${apiBaseUrl}/leads/7/`, () => HttpResponse.json(lead)))
     renderWithQuery(<MemoryRouter initialEntries={['/app/leads/7']}><Routes><Route path="/app/leads/:id" element={<LeadDetailsPage />} /></Routes></MemoryRouter>)
     expect(await screen.findByRole('heading', { name: 'Maria Souza' })).toBeInTheDocument()
     expect(screen.getByText('maria@example.com')).toBeInTheDocument(); expect(screen.getByText('11999999999')).toBeInTheDocument()
     expect(screen.getByLabelText('Status: Novo')).toBeInTheDocument(); expect(screen.getByLabelText('Prioridade: Alta')).toBeInTheDocument()
-    expect(screen.getByText(/15\/07\/2026/)).toBeInTheDocument(); expect(screen.getByText(/Historico de interacoes sera adicionado/)).toBeInTheDocument()
+    expect(screen.getByText(/15\/07\/2026/)).toBeInTheDocument(); expect(screen.getByRole('heading', { name: 'Historico de interacoes' })).toBeInTheDocument(); expect(await screen.findByText('Nenhuma interacao registrada.')).toBeInTheDocument()
   })
 
   it('trata detalhe 404, 500 e resposta invalida sem expor erro tecnico', async () => {

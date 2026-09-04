@@ -31,6 +31,9 @@
   .dialog-panel { @apply max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-panel p-6 shadow-xl; }
   .danger-button { @apply inline-flex items-center justify-center gap-2 rounded-xl bg-danger px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60; }
   .skeleton { @apply animate-pulse rounded-2xl bg-line/70; }
+  .timeline-item { animation: timeline-enter 220ms ease-out both; }
 }
 
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+@keyframes timeline-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } .timeline-item { animation: none; } }

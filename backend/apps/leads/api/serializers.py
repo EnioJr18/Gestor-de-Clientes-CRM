@@ -1,7 +1,7 @@
 from django.db import IntegrityError, transaction
 from rest_framework import serializers
 
-from apps.leads.models import Lead
+from apps.leads.models import Interaction, Lead
 
 
 class DashboardPeriodSerializer(serializers.Serializer):
@@ -138,3 +138,30 @@ class LeadSerializer(StrictFieldsMixin, serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"email": ["Ja existe um lead com este e-mail para este usuario."]}
             ) from exc
+
+
+class InteractionSerializer(StrictFieldsMixin, serializers.ModelSerializer):
+    protected_fields = {"id", "lead", "criado_em", "atualizado_em"}
+
+    class Meta:
+        model = Interaction
+        fields = [
+            "id",
+            "tipo",
+            "data_interacao",
+            "nota",
+            "criado_em",
+            "atualizado_em",
+        ]
+        read_only_fields = ["id", "criado_em", "atualizado_em"]
+        extra_kwargs = {
+            "tipo": {"required": True},
+            "data_interacao": {"required": False},
+            "nota": {"trim_whitespace": True, "allow_blank": False},
+        }
+
+    def validate_nota(self, value):
+        nota = value.strip()
+        if not nota:
+            raise serializers.ValidationError("Informe uma anotacao.")
+        return nota

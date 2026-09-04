@@ -9,4 +9,5 @@ const emptyDashboard = {
 
 export const server = setupServer(
   http.get('http://localhost:8000/api/v1/dashboard/summary/', () => HttpResponse.json(emptyDashboard)),
+  http.get('http://localhost:8000/api/v1/leads/:leadId/interactions/', () => HttpResponse.json({ count: 0, next: null, previous: null, results: [] })),
 )

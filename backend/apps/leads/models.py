@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.functions import Lower
+from django.utils import timezone
 
 
 STATUS_NOVO = "NOVO"
@@ -29,6 +30,21 @@ PRIORITY_CHOICES = (
     (PRIORITY_ALTA, "Alta"),
 )
 PRIORITY_VALUES = [value for value, _label in PRIORITY_CHOICES]
+
+INTERACTION_TIPO_LIGACAO = "LIGACAO"
+INTERACTION_TIPO_EMAIL = "EMAIL"
+INTERACTION_TIPO_REUNIAO = "REUNIAO"
+INTERACTION_TIPO_MENSAGEM = "MENSAGEM"
+INTERACTION_TIPO_NOTA = "NOTA"
+
+INTERACTION_TIPO_CHOICES = (
+    (INTERACTION_TIPO_LIGACAO, "Ligacao"),
+    (INTERACTION_TIPO_EMAIL, "E-mail"),
+    (INTERACTION_TIPO_REUNIAO, "Reuniao"),
+    (INTERACTION_TIPO_MENSAGEM, "Mensagem"),
+    (INTERACTION_TIPO_NOTA, "Nota"),
+)
+INTERACTION_TIPO_VALUES = [value for value, _label in INTERACTION_TIPO_CHOICES]
 
 
 class Lead(models.Model):
@@ -100,12 +116,26 @@ class Lead(models.Model):
 class Interaction(models.Model):
     """Registra cada contato feito com o cliente."""
 
+    TIPO_LIGACAO = INTERACTION_TIPO_LIGACAO
+    TIPO_EMAIL = INTERACTION_TIPO_EMAIL
+    TIPO_REUNIAO = INTERACTION_TIPO_REUNIAO
+    TIPO_MENSAGEM = INTERACTION_TIPO_MENSAGEM
+    TIPO_NOTA = INTERACTION_TIPO_NOTA
+    TIPO_CHOICES = INTERACTION_TIPO_CHOICES
+
     lead = models.ForeignKey(Lead, related_name="interactions", on_delete=models.CASCADE)
+    tipo = models.CharField(max_length=20, choices=INTERACTION_TIPO_CHOICES, default=INTERACTION_TIPO_NOTA)
     nota = models.TextField(verbose_name="Anota\u00e7\u00f5es")
-    data_interacao = models.DateTimeField(auto_now_add=True)
+    data_interacao = models.DateTimeField(default=timezone.now)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
 
     class Meta:
         constraints = [
+            models.CheckConstraint(
+                condition=models.Q(tipo__in=INTERACTION_TIPO_VALUES),
+                name="interaction_tipo_valid_chk",
+            ),
             models.CheckConstraint(
                 condition=~models.Q(nota=""),
                 name="interaction_nota_not_empty_chk",

@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from apps.accounts.api.views import CurrentUserView
 from .dashboard import dashboard_summary
-from .views import LeadViewSet, health
+from .views import InteractionDetailView, InteractionListCreateView, LeadViewSet, health
 
 
 router = DefaultRouter()
@@ -15,5 +15,15 @@ urlpatterns = [
     path("health/", health, name="health"),
     path("users/me/", CurrentUserView.as_view(), name="users_me"),
     path("dashboard/summary/", dashboard_summary, name="dashboard-summary"),
+    path(
+        "leads/<int:lead_id>/interactions/",
+        InteractionListCreateView.as_view(),
+        name="interaction-list",
+    ),
+    path(
+        "leads/<int:lead_id>/interactions/<int:pk>/",
+        InteractionDetailView.as_view(),
+        name="interaction-detail",
+    ),
     path("", include(router.urls)),
 ]

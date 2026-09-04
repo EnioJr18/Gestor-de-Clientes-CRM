@@ -14,6 +14,7 @@ Recursos iniciais:
 /api/v1/health/
 /api/v1/users/me/
 /api/v1/leads/
+/api/v1/leads/{lead_id}/interactions/
 /api/schema/
 /api/docs/
 /api/redoc/
@@ -45,6 +46,25 @@ DELETE  exclusao
 ```
 
 Preferir `PATCH` para edicao parcial de leads.
+
+## Interacoes de leads
+
+As interacoes sao recursos aninhados porque seu escopo deriva do lead:
+
+```text
+GET    /api/v1/leads/{lead_id}/interactions/
+POST   /api/v1/leads/{lead_id}/interactions/
+GET    /api/v1/leads/{lead_id}/interactions/{id}/
+PATCH  /api/v1/leads/{lead_id}/interactions/{id}/
+DELETE /api/v1/leads/{lead_id}/interactions/{id}/
+```
+
+- A URL define o lead; `lead` nao e aceito no payload.
+- `tipo` e obrigatorio e usa os valores `LIGACAO`, `EMAIL`, `REUNIAO`, `MENSAGEM` ou `NOTA`.
+- `nota` e obrigatoria e nao aceita texto somente com espacos.
+- `data_interacao` aceita ISO 8601; quando omitida, recebe o horario atual do servidor.
+- A lista e paginada e ordenada por `-data_interacao`, `-id`, para manter a timeline deterministica.
+- O lead e a interacao sao sempre resolvidos dentro do escopo do usuario autenticado. Recursos de outro usuario retornam `404`.
 
 ## Status codes
 
