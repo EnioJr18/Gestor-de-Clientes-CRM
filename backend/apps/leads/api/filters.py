@@ -30,3 +30,9 @@ class StrictOrderingFilter(OrderingFilter):
         if invalid:
             raise ValidationError({"ordering": ["Campo de ordenacao nao permitido."]})
         return fields
+
+    def get_ordering(self, request, queryset, view):
+        ordering = super().get_ordering(request, queryset, view)
+        if not ordering or "id" in ordering or "-id" in ordering:
+            return ordering
+        return [*ordering, "-id" if ordering[0].startswith("-") else "id"]

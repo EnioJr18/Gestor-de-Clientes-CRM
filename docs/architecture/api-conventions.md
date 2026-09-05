@@ -115,6 +115,8 @@ Parametros iniciais:
 ?search=joao
 ?status=NOVO
 ?prioridade=ALTA
+?criado_em_de=2026-01-01
+?criado_em_ate=2026-01-31
 ?ordering=-criado_em
 ?page=2
 ?page_size=20
@@ -122,11 +124,13 @@ Parametros iniciais:
 
 Filtros de leads:
 
-- `search`: busca parcial por nome, sobrenome, email e telefone;
+- `search`: busca parcial e case-insensitive por nome, sobrenome, email e telefone; texto vazio ou somente espacos nao restringe resultados;
 - `status`: valores de `Lead.STATUS_CHOICES`;
 - `prioridade`: valores de `Lead.PRIORITY_CHOICES`;
-- `criado_em_de` e `criado_em_ate`: intervalo inclusivo por data;
-- `ordering`: campos permitidos somente.
+- `criado_em_de` e `criado_em_ate`: intervalo inclusivo por data sobre `criado_em`;
+- `ordering`: somente `nome`, `email`, `status`, `prioridade`, `criado_em` e `atualizado_em`, com prefixo `-` para ordem decrescente.
+
+A listagem padrao usa `-criado_em`, `-id`. Quando ha ordering explicito, `id` e usado apenas como desempate interno na mesma direcao do primeiro campo, mantendo paginas estaveis sem expor `id` como parametro ordenavel.
 
 Filtros invalidos nao devem ser silenciosamente ignorados se isso gerar comportamento confuso. A API deve retornar erro consistente.
 

@@ -9,12 +9,28 @@ import { LeadTable } from '../components/LeadTable'
 import { useLeads } from '../hooks/useLeads'
 import { leadFiltersSchema } from '../schemas/leadSchema'
 import type { Lead, LeadFilters as Filters, LeadOrdering } from '../types/lead'
+
+const defaultFilters: Filters = { page: 1, pageSize: 20, ordering: '-criado_em' }
+
+function toSearchParams(filters: Filters) {
+  const query = new URLSearchParams()
+  if (filters.page > 1) query.set('page', String(filters.page))
+  if (filters.pageSize !== 20) query.set('page_size', String(filters.pageSize))
+  if (filters.search) query.set('search', filters.search)
+  if (filters.status) query.set('status', filters.status)
+  if (filters.prioridade) query.set('prioridade', filters.prioridade)
+  if (filters.criadoEmDe) query.set('criado_em_de', filters.criadoEmDe)
+  if (filters.criadoEmAte) query.set('criado_em_ate', filters.criadoEmAte)
+  if (filters.ordering && filters.ordering !== '-criado_em') query.set('ordering', filters.ordering)
+  return query
+}
+
 export function LeadsPage() {
   const [params, setParams] = useSearchParams(); const [editing, setEditing] = useState<Lead | undefined>(); const [deleting, setDeleting] = useState<Lead | undefined>(); const [createOpen, setCreateOpen] = useState(false); const [feedback, setFeedback] = useState<string | null>(null)
-  const filters = useMemo(() => leadFiltersSchema.parse({ page: Number(params.get('page') || 1), pageSize: Number(params.get('page_size') || 20), search: params.get('search') || undefined, status: params.get('status') || undefined, prioridade: params.get('prioridade') || undefined, criadoEmDe: params.get('criado_em_de') || undefined, criadoEmAte: params.get('criado_em_ate') || undefined, ordering: params.get('ordering') || undefined }), [params])
+  const filters = useMemo(() => { const parsed = leadFiltersSchema.safeParse({ page: Number(params.get('page') || 1), pageSize: Number(params.get('page_size') || 20), search: params.get('search') || undefined, status: params.get('status') || undefined, prioridade: params.get('prioridade') || undefined, criadoEmDe: params.get('criado_em_de') || undefined, criadoEmAte: params.get('criado_em_ate') || undefined, ordering: params.get('ordering') || '-criado_em' }); return parsed.success ? parsed.data : defaultFilters }, [params])
   const leads = useLeads(filters)
-  const setFilters = useCallback((patch: Partial<Filters>, resetPage = true) => { const next = { ...filters, ...patch, page: resetPage ? 1 : patch.page || filters.page }; const parsed = leadFiltersSchema.safeParse(next); if (!parsed.success) return; const query = new URLSearchParams(); query.set('page', String(parsed.data.page)); query.set('page_size', String(parsed.data.pageSize)); if (parsed.data.search) query.set('search', parsed.data.search); if (parsed.data.status) query.set('status', parsed.data.status); if (parsed.data.prioridade) query.set('prioridade', parsed.data.prioridade); if (parsed.data.criadoEmDe) query.set('criado_em_de', parsed.data.criadoEmDe); if (parsed.data.criadoEmAte) query.set('criado_em_ate', parsed.data.criadoEmAte); if (parsed.data.ordering) query.set('ordering', parsed.data.ordering); setParams(query) }, [filters, setParams])
-  const clear = () => setParams({ page: '1', page_size: '20' }); const hasFilters = Boolean(filters.search || filters.status || filters.prioridade || filters.criadoEmDe || filters.criadoEmAte)
+  const setFilters = useCallback((patch: Partial<Filters>, resetPage = true) => { const next = { ...filters, ...patch, page: resetPage ? 1 : patch.page || filters.page }; const parsed = leadFiltersSchema.safeParse(next); if (parsed.success) setParams(toSearchParams(parsed.data)) }, [filters, setParams])
+  const clear = () => setParams({}); const hasFilters = Boolean(filters.search || filters.status || filters.prioridade || filters.criadoEmDe || filters.criadoEmAte)
   const success = (message: string) => setFeedback(message)
   if (leads.isError) { const error = normalizeApiError(leads.error); return <section className="state-card" role="alert"><h1 className="text-2xl font-semibold text-strong">Nao foi possivel carregar os leads</h1><p className="mt-2 text-muted">{error.message}</p><button className="secondary-button mt-5" type="button" onClick={() => void leads.refetch()}><RefreshCw className="size-4" />Tentar novamente</button></section> }
   const pageCount = Math.max(1, Math.ceil((leads.data?.count || 0) / filters.pageSize))

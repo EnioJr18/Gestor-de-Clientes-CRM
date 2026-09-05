@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from django.urls import reverse
 from django.utils import timezone
@@ -152,6 +152,125 @@ class LeadListApiTests(ApiTestMixin, APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.json()["results"]), 100)
+
+    def test_search_is_partial_case_insensitive_and_ignores_only_spaces(self):
+        lead = create_lead(
+            user=self.user,
+            nome="Maria",
+            sobrenome="Oliveira",
+            email="maria.oliveira@example.com",
+            telefone="85999990000",
+        )
+        create_lead(user=self.user, nome="Outro", email="outro@example.com")
+        self.login()
+
+        for term in ["MAR", "OLIV", "OLIVEIRA@", "990000"]:
+            with self.subTest(term=term):
+                response = self.client.get(reverse("api_v1:lead-list"), {"search": term})
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                self.assertEqual([item["id"] for item in response.json()["results"]], [lead.pk])
+
+        response = self.client.get(reverse("api_v1:lead-list"), {"search": "   "})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["count"], 2)
+
+    def test_every_status_and_priority_filter_uses_domain_choices(self):
+        self.login()
+        for index, status_value in enumerate(Lead.STATUS_VALUES):
+            create_lead(
+                user=self.user,
+                nome=f"Status {index}",
+                email=f"status-{index}@example.com",
+                status=status_value,
+            )
+        for index, priority_value in enumerate(Lead.PRIORITY_VALUES):
+            create_lead(
+                user=self.user,
+                nome=f"Priority {index}",
+                email=f"priority-{index}@example.com",
+                prioridade=priority_value,
+            )
+
+        for status_value in Lead.STATUS_VALUES:
+            with self.subTest(status=status_value):
+                response = self.client.get(reverse("api_v1:lead-list"), {"status": status_value})
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                self.assertTrue(all(item["status"] == status_value for item in response.json()["results"]))
+
+        for priority_value in Lead.PRIORITY_VALUES:
+            with self.subTest(prioridade=priority_value):
+                response = self.client.get(reverse("api_v1:lead-list"), {"prioridade": priority_value})
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                self.assertTrue(all(item["prioridade"] == priority_value for item in response.json()["results"]))
+
+    def test_created_date_bounds_are_inclusive_and_composable(self):
+        dates = {
+            "before": datetime(2026, 1, 9, 12, tzinfo=timezone.get_current_timezone()),
+            "start": datetime(2026, 1, 10, 12, tzinfo=timezone.get_current_timezone()),
+            "end": datetime(2026, 1, 12, 12, tzinfo=timezone.get_current_timezone()),
+            "after": datetime(2026, 1, 13, 12, tzinfo=timezone.get_current_timezone()),
+        }
+        for name, created_at in dates.items():
+            set_created_at(create_lead(user=self.user, nome=name, email=f"{name}@example.com"), created_at)
+        self.login()
+
+        cases = [
+            ({"criado_em_de": "2026-01-10"}, {"start", "end", "after"}),
+            ({"criado_em_ate": "2026-01-12"}, {"before", "start", "end"}),
+            ({"criado_em_de": "2026-01-10", "criado_em_ate": "2026-01-12"}, {"start", "end"}),
+        ]
+        for params, expected_names in cases:
+            with self.subTest(params=params):
+                response = self.client.get(reverse("api_v1:lead-list"), params)
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                self.assertEqual({item["nome"] for item in response.json()["results"]}, expected_names)
+
+    def test_ordering_and_pagination_are_stable_for_equal_values(self):
+        same_time = timezone.now() - timedelta(days=1)
+        first = set_created_at(create_lead(user=self.user, nome="Mesmo", email="first@example.com"), same_time)
+        second = set_created_at(create_lead(user=self.user, nome="Mesmo", email="second@example.com"), same_time)
+        for name in ["Alfa", "Beta", "Gama"]:
+            create_lead(user=self.user, nome=name, email=f"{name.lower()}@example.com")
+        self.login()
+
+        default_response = self.client.get(reverse("api_v1:lead-list"))
+        default_same_ids = [item["id"] for item in default_response.json()["results"] if item["nome"] == "Mesmo"]
+        self.assertEqual(default_same_ids, [second.pk, first.pk])
+
+        ascending = self.client.get(reverse("api_v1:lead-list"), {"ordering": "nome"})
+        same_name_ids = [item["id"] for item in ascending.json()["results"] if item["nome"] == "Mesmo"]
+        self.assertEqual(same_name_ids, [first.pk, second.pk])
+
+        page_two = self.client.get(reverse("api_v1:lead-list"), {"ordering": "nome", "page_size": 2, "page": 2})
+        self.assertEqual(page_two.status_code, status.HTTP_200_OK)
+        self.assertEqual(page_two.json()["count"], 5)
+        self.assertEqual([item["nome"] for item in page_two.json()["results"]], ["Gama", "Mesmo"])
+
+    def test_filtered_results_remain_isolated_from_other_users(self):
+        own = create_lead(
+            user=self.user,
+            nome="Maria Filtro",
+            email="own-filter@example.com",
+            status=Lead.STATUS_NOVO,
+            prioridade=Lead.PRIORITY_ALTA,
+        )
+        create_lead(
+            user=self.other,
+            nome="Maria Filtro",
+            email="other-filter@example.com",
+            status=Lead.STATUS_NOVO,
+            prioridade=Lead.PRIORITY_ALTA,
+        )
+        self.login()
+
+        response = self.client.get(
+            reverse("api_v1:lead-list"),
+            {"search": "maria", "status": Lead.STATUS_NOVO, "prioridade": Lead.PRIORITY_ALTA, "page_size": 1},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["count"], 1)
+        self.assertEqual(response.json()["results"][0]["id"], own.pk)
 
 
 class LeadCreateApiTests(ApiTestMixin, APITestCase):

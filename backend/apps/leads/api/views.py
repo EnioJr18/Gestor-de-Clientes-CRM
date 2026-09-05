@@ -29,7 +29,7 @@ class LeadViewSet(viewsets.ModelViewSet):
     filterset_class = LeadFilter
     search_fields = ["nome", "sobrenome", "email", "telefone"]
     ordering_fields = ["nome", "email", "status", "prioridade", "criado_em", "atualizado_em"]
-    ordering = ["-criado_em"]
+    ordering = ["-criado_em", "-id"]
     filter_backends = [
         DjangoFilterBackend,
         SearchFilter,
