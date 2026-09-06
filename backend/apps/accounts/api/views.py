@@ -6,6 +6,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from drf_spectacular.utils import OpenApiExample, OpenApiParameter, OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -66,6 +67,8 @@ class LoginView(APIView):
     authentication_classes = [PublicAuthEndpointAuthentication]
     permission_classes = [AllowAny]
     throttle_classes = [LoginRateThrottle]
+    # JSON forces a CORS preflight, preventing a cross-site HTML form from issuing login requests.
+    parser_classes = [JSONParser]
 
     @extend_schema(
         auth=[],
@@ -74,6 +77,7 @@ class LoginView(APIView):
             200: LoginResponseSerializer,
             400: OpenApiResponse(description="Payload invalido."),
             401: OpenApiResponse(description="Credenciais invalidas."),
+            415: OpenApiResponse(description="O login aceita somente JSON."),
             429: OpenApiResponse(description="Limite de tentativas excedido."),
         },
         examples=[OpenApiExample("Login", value={"username": "usuario", "password": "senha"}, request_only=True)],

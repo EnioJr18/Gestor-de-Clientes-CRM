@@ -54,6 +54,17 @@ SECURE_REFERRER_POLICY = "same-origin"
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
+REQUIRE_SHARED_THROTTLE_CACHE = env_bool("REQUIRE_SHARED_THROTTLE_CACHE", False)
+LOCAL_CACHE_BACKENDS = {
+    "django.core.cache.backends.dummy.DummyCache",
+    "django.core.cache.backends.filebased.FileBasedCache",
+    "django.core.cache.backends.locmem.LocMemCache",
+}
+if REQUIRE_SHARED_THROTTLE_CACHE and CACHE_BACKEND in LOCAL_CACHE_BACKENDS:  # noqa: F405
+    raise ImproperlyConfigured(
+        "CACHE_BACKEND deve usar um cache compartilhado quando REQUIRE_SHARED_THROTTLE_CACHE=True."
+    )
+
 EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", EMAIL_BACKEND)  # noqa: F405
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
 EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))

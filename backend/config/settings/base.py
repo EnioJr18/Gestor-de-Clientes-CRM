@@ -189,6 +189,21 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+CACHE_BACKEND = os.environ.get(
+    "CACHE_BACKEND",
+    "django.core.cache.backends.locmem.LocMemCache",
+).strip()
+CACHE_LOCATION = os.environ.get("CACHE_LOCATION", "crm-pro").strip()
+if not CACHE_BACKEND or not CACHE_LOCATION:
+    raise ImproperlyConfigured("CACHE_BACKEND e CACHE_LOCATION nao podem ficar vazios.")
+CACHES = {
+    "default": {
+        "BACKEND": CACHE_BACKEND,
+        "LOCATION": CACHE_LOCATION,
+        "TIMEOUT": int(os.environ.get("CACHE_TIMEOUT", "300")),
+    }
+}
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",

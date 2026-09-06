@@ -262,7 +262,7 @@ A API v1 aceita `Authorization: Bearer <access>` e sessao Django. Operacoes comu
 Contrato de autenticacao:
 
 - `GET /api/v1/auth/csrf/`: emite cookie `csrftoken` legivel pela SPA e retorna o token.
-- `POST /api/v1/auth/login/`: recebe username/password, retorna access e usuario; refresh somente no cookie HttpOnly.
+- `POST /api/v1/auth/login/`: aceita somente JSON com username/password, retorna access e usuario; refresh somente no cookie HttpOnly.
 - `POST /api/v1/auth/refresh/`: payload vazio, refresh no cookie e `X-CSRFToken` obrigatorio; rotaciona e revoga o anterior.
 - `POST /api/v1/auth/logout/`: payload vazio e `X-CSRFToken` obrigatorio; revoga quando houver token, apaga o cookie e retorna 204 de forma idempotente.
 - `GET /api/v1/users/me/`: aceita JWT e sessao e retorna apenas campos seguros.

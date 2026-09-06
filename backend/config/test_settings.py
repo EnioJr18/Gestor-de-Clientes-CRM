@@ -29,6 +29,10 @@ def import_settings(module, extra_env=None):
     env.pop("CORS_ALLOWED_ORIGINS", None)
     env.pop("CSRF_TRUSTED_ORIGINS", None)
     env.pop("SPA_ENABLED", None)
+    env.pop("CACHE_BACKEND", None)
+    env.pop("CACHE_LOCATION", None)
+    env.pop("CACHE_TIMEOUT", None)
+    env.pop("REQUIRE_SHARED_THROTTLE_CACHE", None)
     if extra_env:
         env.update(extra_env)
 
@@ -55,6 +59,10 @@ def run_settings_code(module, code, extra_env=None):
     env.pop("CORS_ALLOWED_ORIGINS", None)
     env.pop("CSRF_TRUSTED_ORIGINS", None)
     env.pop("SPA_ENABLED", None)
+    env.pop("CACHE_BACKEND", None)
+    env.pop("CACHE_LOCATION", None)
+    env.pop("CACHE_TIMEOUT", None)
+    env.pop("REQUIRE_SHARED_THROTTLE_CACHE", None)
     if extra_env:
         env.update(extra_env)
 
@@ -194,6 +202,26 @@ class ProductionSettingsTests(SimpleTestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("JWT_REFRESH_COOKIE_SECURE deve ser True", result.stderr)
 
+    def test_production_rejects_local_cache_when_shared_throttling_is_required(self):
+        result = import_settings(
+            "config.settings.production",
+            {**self.valid_env, "REQUIRE_SHARED_THROTTLE_CACHE": "True"},
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("CACHE_BACKEND deve usar um cache compartilhado", result.stderr)
+
+    def test_production_accepts_configured_nonlocal_cache_for_shared_throttling(self):
+        result = import_settings(
+            "config.settings.production",
+            {
+                **self.valid_env,
+                "REQUIRE_SHARED_THROTTLE_CACHE": "True",
+                "CACHE_BACKEND": "django.core.cache.backends.db.DatabaseCache",
+                "CACHE_LOCATION": "crm_cache",
+            },
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
 
 class EnvironmentSettingsTests(SimpleTestCase):
     def test_development_requires_database_url_by_default(self):
@@ -226,6 +254,29 @@ class EnvironmentSettingsTests(SimpleTestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("False\nFalse\nFalse", result.stdout)
         self.assertIn("127.0.0.1", result.stdout)
+
+    def test_default_cache_is_local_and_can_be_configured_by_environment(self):
+        local = run_settings_code(
+            "config.settings.development",
+            "print(CACHES['default']['BACKEND']); print(CACHES['default']['LOCATION'])",
+            {"DATABASE_URL": "postgres://user:pass@localhost:5432/crm_pro"},
+        )
+        self.assertEqual(local.returncode, 0, local.stderr)
+        self.assertIn("LocMemCache", local.stdout)
+        self.assertIn("crm-pro", local.stdout)
+
+        configured = run_settings_code(
+            "config.settings.development",
+            "print(CACHES['default']['BACKEND']); print(CACHES['default']['LOCATION'])",
+            {
+                "DATABASE_URL": "postgres://user:pass@localhost:5432/crm_pro",
+                "CACHE_BACKEND": "django.core.cache.backends.db.DatabaseCache",
+                "CACHE_LOCATION": "crm_cache",
+            },
+        )
+        self.assertEqual(configured.returncode, 0, configured.stderr)
+        self.assertIn("DatabaseCache", configured.stdout)
+        self.assertIn("crm_cache", configured.stdout)
 
     def test_development_accepts_explicit_vite_origin_from_environment(self):
         result = run_settings_code(

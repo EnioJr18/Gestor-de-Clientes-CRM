@@ -13,6 +13,7 @@ DEFAULT_MESSAGES = {
     status.HTTP_404_NOT_FOUND: ("not_found", "Recurso nao encontrado."),
     status.HTTP_405_METHOD_NOT_ALLOWED: ("method_not_allowed", "Metodo nao permitido."),
     status.HTTP_409_CONFLICT: ("conflict", "A requisicao conflita com o estado atual do recurso."),
+    status.HTTP_415_UNSUPPORTED_MEDIA_TYPE: ("unsupported_media_type", "Tipo de conteudo nao suportado."),
     status.HTTP_429_TOO_MANY_REQUESTS: ("throttled", "Muitas requisicoes."),
 }
 

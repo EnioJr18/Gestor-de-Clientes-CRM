@@ -11,7 +11,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-from apps.accounts.api.throttles import LoginRateThrottle
+from apps.accounts.api.throttles import CsrfRateThrottle, LoginRateThrottle, RefreshRateThrottle
 from apps.leads.models import Lead
 from apps.leads.tests.factories import create_lead, create_user, lead_payload
 
@@ -102,6 +102,17 @@ class LoginTests(JwtApiMixin, APITestCase):
                 response = self.client.post(reverse("accounts_api:login"), payload, format="json")
                 self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
                 self.assertEqual(response.json()["code"], "validation_error")
+
+    def test_login_rejects_form_encoded_payloads(self):
+        response = self.client.post(
+            reverse("accounts_api:login"),
+            {"username": self.user.username, "password": "password123"},
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+        self.assertEqual(response.json()["code"], "unsupported_media_type")
+        self.assertNotIn(settings.JWT_REFRESH_COOKIE_NAME, response.cookies)
 
     def test_wrong_method_uses_standard_contract(self):
         response = self.client.get(reverse("accounts_api:login"))
@@ -337,11 +348,47 @@ class AuthThrottleTests(JwtApiMixin, APITestCase):
             second = self.client.post(url, {"username": "none", "password": "wrong"}, format="json")
             self.assertEqual(second.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
             self.assertEqual(second.json()["code"], "throttled")
+            self.assertIsNotNone(second.get("Retry-After"))
         finally:
             if original_rate is None:
                 delattr(LoginRateThrottle, "rate")
             else:
                 LoginRateThrottle.rate = original_rate
+
+    def test_refresh_and_csrf_throttles_return_429_and_retry_after(self):
+        _, csrf = self.login()
+        original_refresh_rate = getattr(RefreshRateThrottle, "rate", None)
+        original_csrf_rate = getattr(CsrfRateThrottle, "rate", None)
+        RefreshRateThrottle.rate = "1/min"
+        CsrfRateThrottle.rate = "1/min"
+        try:
+            cache.clear()
+            first_refresh = self.client.post(
+                reverse("accounts_api:refresh"), {}, format="json", HTTP_X_CSRFTOKEN=csrf
+            )
+            second_refresh = self.client.post(
+                reverse("accounts_api:refresh"), {}, format="json", HTTP_X_CSRFTOKEN=csrf
+            )
+            self.assertEqual(first_refresh.status_code, status.HTTP_200_OK)
+            self.assertEqual(second_refresh.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+            self.assertIsNotNone(second_refresh.get("Retry-After"))
+
+            cache.clear()
+            first_csrf = self.client.get(reverse("accounts_api:csrf"))
+            second_csrf = self.client.get(reverse("accounts_api:csrf"))
+            self.assertEqual(first_csrf.status_code, status.HTTP_200_OK)
+            self.assertEqual(second_csrf.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+            self.assertIsNotNone(second_csrf.get("Retry-After"))
+        finally:
+            cache.clear()
+            if original_refresh_rate is None:
+                delattr(RefreshRateThrottle, "rate")
+            else:
+                RefreshRateThrottle.rate = original_refresh_rate
+            if original_csrf_rate is None:
+                delattr(CsrfRateThrottle, "rate")
+            else:
+                CsrfRateThrottle.rate = original_csrf_rate
 
 
 class TokenSecrecyTests(JwtApiMixin, APITestCase):

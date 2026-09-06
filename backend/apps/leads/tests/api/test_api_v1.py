@@ -477,3 +477,39 @@ class ApiSchemaAndLegacyRouteTests(ApiTestMixin, APITestCase):
             with self.subTest(route=route):
                 response = self.client.get(route)
                 self.assertLess(response.status_code, 500)
+
+
+class StaffIsolationApiTests(APITestCase):
+    def test_staff_user_does_not_gain_global_api_access(self):
+        staff = create_user(username="staff-api", password="password123", is_staff=True)
+        owner = create_user(username="owner-api", password="password123")
+        foreign_lead = create_lead(user=owner, email="owner-only@example.com")
+        foreign_interaction = create_interaction(foreign_lead)
+        client = APIClient()
+        client.force_authenticate(staff)
+
+        self.assertEqual(client.get(reverse("api_v1:lead-list")).json()["count"], 0)
+        self.assertEqual(client.get(reverse("api_v1:dashboard-summary")).json()["metrics"]["total_leads"], 0)
+
+        lead_url = reverse("api_v1:lead-detail", args=[foreign_lead.pk])
+        interaction_url = reverse(
+            "api_v1:interaction-detail",
+            kwargs={"lead_id": foreign_lead.pk, "pk": foreign_interaction.pk},
+        )
+        interaction_list_url = reverse("api_v1:interaction-list", kwargs={"lead_id": foreign_lead.pk})
+        for response in [
+            client.get(lead_url),
+            client.patch(lead_url, {"nome": "Nao alterar"}, format="json"),
+            client.delete(lead_url),
+            client.get(interaction_url),
+            client.patch(interaction_url, {"nota": "Nao alterar"}, format="json"),
+            client.delete(interaction_url),
+            client.post(interaction_list_url, {"tipo": Interaction.TIPO_NOTA, "nota": "Nao criar"}, format="json"),
+        ]:
+            with self.subTest(method=response.request["REQUEST_METHOD"]):
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        foreign_lead.refresh_from_db()
+        foreign_interaction.refresh_from_db()
+        self.assertEqual(foreign_lead.nome, "Maria")
+        self.assertEqual(foreign_interaction.nota, "Contato inicial")
