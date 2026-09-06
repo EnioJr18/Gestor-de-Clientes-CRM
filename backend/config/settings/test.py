@@ -11,6 +11,15 @@ ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", ["testserver", "127.0.0.1", "localhost
 CSRF_TRUSTED_ORIGINS = []
 CORS_ALLOWED_ORIGINS = ["http://localhost:5173"]
 
+# Tests render legacy and Django admin templates without a collectstatic artifact.
+# Keep production's manifest storage out of this deterministic test environment.
+STORAGES = {
+    **STORAGES,  # noqa: F405
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
 if env_bool("USE_SQLITE_FOR_TESTS", False):
     DATABASES = {
         "default": {

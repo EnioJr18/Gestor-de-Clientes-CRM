@@ -332,3 +332,16 @@ class EnvironmentSettingsTests(SimpleTestCase):
         self.assertIn("False", result.stdout)
         self.assertIn("testserver", result.stdout)
         self.assertIn(":memory:", result.stdout)
+
+    def test_test_settings_resolve_admin_staticfiles_without_a_manifest(self):
+        result = run_settings_code(
+            "config.settings.test",
+            "from django.contrib.staticfiles.storage import staticfiles_storage\n"
+            "print(STORAGES['staticfiles']['BACKEND'])\n"
+            "print(staticfiles_storage.url('admin/css/base.css'))",
+            {"USE_SQLITE_FOR_TESTS": "True"},
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("StaticFilesStorage", result.stdout)
+        self.assertIn("admin/css/base.css", result.stdout)
