@@ -90,6 +90,8 @@ Essa protecao deve entrar antes de expor CSV pela API.
 ## Secrets e logs
 
 - Secrets devem vir de variaveis de ambiente.
+- Em producao, o runtime envia logs para stdout com data/hora, nivel e nome do
+  logger; a plataforma deve coletar, reter e alertar sobre esses eventos.
 - Logs nao devem conter tokens, senhas, `DATABASE_URL`, cookies ou dados sensiveis desnecessarios.
 - Produção deve usar HTTPS e cookies seguros.
 - URLs reais de Neon nao devem ser exibidas em logs, documentacao ou relatorios.

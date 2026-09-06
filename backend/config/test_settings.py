@@ -156,6 +156,19 @@ class ProductionSettingsTests(SimpleTestCase):
         result = import_settings("config.settings.production", self.valid_env)
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_production_logs_to_stdout_with_timestamped_formatter(self):
+        result = run_settings_code(
+            "config.settings.production",
+            "print(LOGGING['handlers']['console']['class'])\n"
+            "print(LOGGING['formatters']['production']['format'])\n"
+            "print(LOGGING['root']['level'])",
+            {**self.valid_env, "LOG_LEVEL": "warning"},
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("logging.StreamHandler", result.stdout)
+        self.assertIn("{asctime} {levelname} {name} {message}", result.stdout)
+        self.assertIn("WARNING", result.stdout)
+
     def test_spa_enabled_requires_explicit_cors_and_csrf_origins(self):
         result = import_settings(
             "config.settings.production",

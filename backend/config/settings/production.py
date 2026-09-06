@@ -54,6 +54,28 @@ SECURE_REFERRER_POLICY = "same-origin"
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
+# Containers emit logs to stdout so the deploy platform can collect, retain and alert on them.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "production": {
+            "format": "{asctime} {levelname} {name} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "production",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": os.environ.get("LOG_LEVEL", "INFO").upper(),
+    },
+}
+
 REQUIRE_SHARED_THROTTLE_CACHE = env_bool("REQUIRE_SHARED_THROTTLE_CACHE", False)
 LOCAL_CACHE_BACKENDS = {
     "django.core.cache.backends.dummy.DummyCache",
