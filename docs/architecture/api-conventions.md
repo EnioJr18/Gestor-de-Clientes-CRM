@@ -66,6 +66,18 @@ DELETE /api/v1/leads/{lead_id}/interactions/{id}/
 - A lista e paginada e ordenada por `-data_interacao`, `-id`, para manter a timeline deterministica.
 - O lead e a interacao sao sempre resolvidos dentro do escopo do usuario autenticado. Recursos de outro usuario retornam `404`.
 
+## Dashboard analitico
+
+`GET /api/v1/dashboard/summary/` preserva as metricas existentes e acrescenta agregacoes de interacoes no mesmo periodo:
+
+- `interaction_total`: quantidade de interacoes por `data_interacao`;
+- `interaction_by_type`: todos os valores de `Interaction.TIPO_CHOICES`, na ordem dos choices, com `tipo`, `label` e `count`;
+- `leads_with_interaction`: leads atuais do usuario com ao menos uma interacao no periodo;
+- `leads_without_interaction`: leads atuais do usuario sem interacao no periodo, usando o mesmo universo da metrica anterior;
+- `interaction_monthly_evolution`: quantidade mensal por `data_interacao`, em ordem cronologica e com meses sem registros preenchidos por zero.
+
+As interacoes sao filtradas por `lead__agente_responsavel` e nunca incluem dados de outros usuarios. Os periodos `7d`, `30d`, `90d`, `12m` e `custom` reutilizam as mesmas datas inclusivas aplicadas as metricas de leads.
+
 ## Status codes
 
 ```text

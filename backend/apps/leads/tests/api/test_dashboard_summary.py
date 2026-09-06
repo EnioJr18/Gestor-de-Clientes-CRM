@@ -6,8 +6,8 @@ from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.leads.models import Lead
-from apps.leads.tests.factories import create_lead, create_user, set_created_at
+from apps.leads.models import Interaction, Lead
+from apps.leads.tests.factories import create_interaction, create_lead, create_user, set_created_at, set_interaction_date
 
 
 class DashboardSummaryApiTests(APITestCase):
@@ -58,6 +58,9 @@ class DashboardSummaryApiTests(APITestCase):
         response = self.client.get(self.url, {"period": "custom", "date_from": "2026-01-01", "date_to": "2026-03-31"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual([item["count"] for item in response.data["monthly_evolution"]], [0, 0, 0])
+        self.assertEqual(response.data["interaction_total"], 0)
+        self.assertEqual([item["count"] for item in response.data["interaction_by_type"]], [0, 0, 0, 0, 0])
+        self.assertEqual([item["count"] for item in response.data["interaction_monthly_evolution"]], [0, 0, 0])
         self.assertEqual(self.client.get(self.url, {"period": "invalid"}).status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.client.get(self.url, {"period": "custom", "date_from": "2026-03-01"}).status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.client.get(self.url, {"period": "custom", "date_from": "2026-03-02", "date_to": "2026-03-01"}).status_code, status.HTTP_400_BAD_REQUEST)
@@ -115,6 +118,8 @@ class DashboardSummaryApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["monthly_evolution"]), 12)
         self.assertEqual(response.data["monthly_evolution"], sorted(response.data["monthly_evolution"], key=lambda item: item["month"]))
+        self.assertEqual(len(response.data["interaction_monthly_evolution"]), 12)
+        self.assertEqual(response.data["interaction_monthly_evolution"], sorted(response.data["interaction_monthly_evolution"], key=lambda item: item["month"]))
 
     def test_custom_period_rejects_invalid_dates_and_excessive_range(self):
         self.client.force_authenticate(self.user)
@@ -139,3 +144,30 @@ class DashboardSummaryApiTests(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["metrics"]["conversion_rate"], 33.3)
+
+    def test_interaction_analytics_use_interaction_date_and_preserve_isolation(self):
+        start = timezone.make_aware(timezone.datetime(2026, 1, 1, 10, 0))
+        old_lead = set_created_at(create_lead(user=self.user), start - timedelta(days=90))
+        recent_lead = set_created_at(create_lead(user=self.user), start + timedelta(days=1))
+        create_lead(user=self.user)
+        other_lead = create_lead(user=self.other)
+
+        set_interaction_date(create_interaction(lead=old_lead, tipo=Interaction.TIPO_LIGACAO), start)
+        set_interaction_date(create_interaction(lead=old_lead, tipo=Interaction.TIPO_EMAIL), start + timedelta(days=59))
+        set_interaction_date(create_interaction(lead=recent_lead, tipo=Interaction.TIPO_REUNIAO), start + timedelta(days=31))
+        set_interaction_date(create_interaction(lead=old_lead, tipo=Interaction.TIPO_NOTA), start - timedelta(days=1))
+        set_interaction_date(create_interaction(lead=other_lead, tipo=Interaction.TIPO_MENSAGEM), start + timedelta(days=2))
+
+        self.client.force_authenticate(self.user)
+        response = self.client.get(self.url, {"period": "custom", "date_from": "2026-01-01", "date_to": "2026-03-31"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["interaction_total"], 3)
+        self.assertEqual(
+            [(item["tipo"], item["label"], item["count"]) for item in response.data["interaction_by_type"]],
+            [("LIGACAO", "Ligacao", 1), ("EMAIL", "E-mail", 1), ("REUNIAO", "Reuniao", 1), ("MENSAGEM", "Mensagem", 0), ("NOTA", "Nota", 0)],
+        )
+        self.assertEqual(response.data["leads_with_interaction"], 2)
+        self.assertEqual(response.data["leads_without_interaction"], 1)
+        self.assertEqual([item["count"] for item in response.data["interaction_monthly_evolution"]], [1, 1, 1])
+        self.assertEqual(response.data["interaction_monthly_evolution"], sorted(response.data["interaction_monthly_evolution"], key=lambda item: item["month"]))

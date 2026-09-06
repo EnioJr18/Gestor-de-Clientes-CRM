@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { dashboardPeriodKeys, dashboardPriorities, dashboardStatuses, type DashboardFilters } from '../types/dashboard'
+import { dashboardInteractionTypes, dashboardPeriodKeys, dashboardPriorities, dashboardStatuses, type DashboardFilters } from '../types/dashboard'
 const nonNegativeInteger = z.number().int().nonnegative()
 export const dashboardFiltersSchema = z.object({ period: z.enum(dashboardPeriodKeys), date_from: z.string().date().optional(), date_to: z.string().date().optional() }).superRefine((value, context) => { if (value.period === 'custom' && (!value.date_from || !value.date_to)) context.addIssue({ code: 'custom', path: ['date_from'], message: 'Informe as duas datas do periodo personalizado.' }); if (value.date_from && value.date_to && value.date_from > value.date_to) context.addIssue({ code: 'custom', path: ['date_to'], message: 'A data final deve ser posterior ou igual a inicial.' }) })
 export const dashboardPeriodSchema = z.object({ key: z.enum(dashboardPeriodKeys), date_from: z.string().date(), date_to: z.string().date() })
@@ -7,6 +7,8 @@ export const dashboardMetricsSchema = z.object({ total_leads: nonNegativeInteger
 export const dashboardStatusItemSchema = z.object({ status: z.enum(dashboardStatuses), label: z.string().min(1), count: nonNegativeInteger })
 export const dashboardPriorityItemSchema = z.object({ priority: z.enum(dashboardPriorities), label: z.string().min(1), count: nonNegativeInteger })
 export const dashboardEvolutionItemSchema = z.object({ month: z.string().regex(/^\d{4}-\d{2}$/), label: z.string().min(1), count: nonNegativeInteger })
+export const dashboardInteractionTypeItemSchema = z.object({ tipo: z.enum(dashboardInteractionTypes), label: z.string().min(1), count: nonNegativeInteger })
+export const dashboardInteractionEvolutionItemSchema = z.object({ month: z.string().regex(/^\d{4}-\d{2}$/), label: z.string().min(1), count: nonNegativeInteger })
 export const dashboardRecentLeadSchema = z.object({ id: z.number().int().positive(), nome: z.string().trim().min(1), sobrenome: z.string().nullable(), email: z.string().email(), status: z.enum(dashboardStatuses), prioridade: z.enum(dashboardPriorities), criado_em: z.string().datetime({ offset: true }) })
-export const dashboardSummarySchema = z.object({ period: dashboardPeriodSchema, metrics: dashboardMetricsSchema, by_status: z.array(dashboardStatusItemSchema), by_priority: z.array(dashboardPriorityItemSchema), monthly_evolution: z.array(dashboardEvolutionItemSchema), recent_leads: z.array(dashboardRecentLeadSchema).max(5) })
+export const dashboardSummarySchema = z.object({ period: dashboardPeriodSchema, metrics: dashboardMetricsSchema, by_status: z.array(dashboardStatusItemSchema), by_priority: z.array(dashboardPriorityItemSchema), monthly_evolution: z.array(dashboardEvolutionItemSchema), recent_leads: z.array(dashboardRecentLeadSchema).max(5), interaction_total: nonNegativeInteger, interaction_by_type: z.array(dashboardInteractionTypeItemSchema), leads_with_interaction: nonNegativeInteger, leads_without_interaction: nonNegativeInteger, interaction_monthly_evolution: z.array(dashboardInteractionEvolutionItemSchema) })
 export function parseDashboardFilters(value: unknown): DashboardFilters { return dashboardFiltersSchema.parse(value) }

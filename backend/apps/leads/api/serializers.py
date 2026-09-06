@@ -36,6 +36,12 @@ class DashboardEvolutionSerializer(serializers.Serializer):
     count = serializers.IntegerField()
 
 
+class DashboardInteractionTypeSerializer(serializers.Serializer):
+    tipo = serializers.CharField()
+    label = serializers.CharField()
+    count = serializers.IntegerField()
+
+
 class DashboardRecentLeadSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     nome = serializers.CharField()
@@ -53,6 +59,11 @@ class DashboardSummarySerializer(serializers.Serializer):
     by_priority = DashboardPrioritySerializer(many=True)
     monthly_evolution = DashboardEvolutionSerializer(many=True)
     recent_leads = DashboardRecentLeadSerializer(many=True)
+    interaction_total = serializers.IntegerField()
+    interaction_by_type = DashboardInteractionTypeSerializer(many=True)
+    leads_with_interaction = serializers.IntegerField()
+    leads_without_interaction = serializers.IntegerField()
+    interaction_monthly_evolution = DashboardEvolutionSerializer(many=True)
 
 
 class StrictFieldsMixin:

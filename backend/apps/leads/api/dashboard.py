@@ -9,7 +9,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.leads.models import Lead
+from apps.leads.models import Interaction, Lead
 from .serializers import DashboardSummarySerializer
 
 
@@ -85,14 +85,22 @@ def _months(start, end, counts):
                 "by_priority": [{"priority": "ALTA", "label": "Alta", "count": 2}],
                 "monthly_evolution": [{"month": "2026-07", "label": "Jul/2026", "count": 4}],
                 "recent_leads": [],
+                "interaction_total": 3,
+                "interaction_by_type": [{"tipo": "LIGACAO", "label": "Ligacao", "count": 1}],
+                "leads_with_interaction": 2,
+                "leads_without_interaction": 10,
+                "interaction_monthly_evolution": [{"month": "2026-07", "label": "Jul/2026", "count": 1}],
             },
             response_only=True,
             status_codes=["200"],
         )
     ],
     description=(
-        "Metricas de leads do usuario autenticado. Todos os valores sao isolados por "
-        "agente_responsavel; nao ha dados de outros usuarios. O periodo custom exige "
+        "Metricas de leads e interacoes do usuario autenticado. Todas as agregacoes de "
+        "interacoes sao limitadas por lead__agente_responsavel. interaction_total e a "
+        "evolucao mensal usam data_interacao. leads_with_interaction e "
+        "leads_without_interaction usam como universo todos os leads atuais do usuario; "
+        "o segundo conta os que nao tiveram interacao no intervalo. O periodo custom exige "
         "date_from e date_to inclusivos em YYYY-MM-DD."
     ),
 )
@@ -102,12 +110,27 @@ def dashboard_summary(request):
     key, start, end = _period(request.query_params)
     leads = Lead.objects.filter(agente_responsavel=request.user)
     period_leads = leads.filter(criado_em__date__range=(start, end))
+    interactions = Interaction.objects.filter(
+        lead__agente_responsavel=request.user,
+        data_interacao__date__range=(start, end),
+    )
     created = period_leads.count()
     converted = period_leads.filter(status=Lead.STATUS_VENDIDO).count()
     status_counts = {row["status"]: row["count"] for row in leads.values("status").annotate(count=Count("id"))}
     priority_counts = {row["prioridade"]: row["count"] for row in leads.values("prioridade").annotate(count=Count("id"))}
     months = leads.filter(criado_em__date__range=(start, end)).annotate(month=TruncMonth("criado_em")).values("month").annotate(count=Count("id")).order_by("month")
     monthly = _months(start, end, {row["month"].strftime("%Y-%m"): row["count"] for row in months})
+    interaction_type_counts = {
+        row["tipo"]: row["count"]
+        for row in interactions.values("tipo").annotate(count=Count("id"))
+    }
+    interaction_months = interactions.annotate(month=TruncMonth("data_interacao")).values("month").annotate(count=Count("id")).order_by("month")
+    interaction_monthly = _months(
+        start,
+        end,
+        {row["month"].strftime("%Y-%m"): row["count"] for row in interaction_months},
+    )
+    interacted_lead_ids = interactions.values("lead_id")
     recent = list(leads.order_by("-criado_em", "-id").values("id", "nome", "sobrenome", "email", "status", "prioridade", "criado_em")[:5])
     payload = {
         "period": {"key": key, "date_from": start, "date_to": end},
@@ -116,5 +139,13 @@ def dashboard_summary(request):
         "by_priority": [{"priority": value, "label": label, "count": priority_counts.get(value, 0)} for value, label in Lead.PRIORITY_CHOICES],
         "monthly_evolution": monthly,
         "recent_leads": recent,
+        "interaction_total": interactions.count(),
+        "interaction_by_type": [
+            {"tipo": value, "label": label, "count": interaction_type_counts.get(value, 0)}
+            for value, label in Interaction.TIPO_CHOICES
+        ],
+        "leads_with_interaction": leads.filter(pk__in=interacted_lead_ids).distinct().count(),
+        "leads_without_interaction": leads.exclude(pk__in=interacted_lead_ids).count(),
+        "interaction_monthly_evolution": interaction_monthly,
     }
     return Response(DashboardSummarySerializer(payload).data)
