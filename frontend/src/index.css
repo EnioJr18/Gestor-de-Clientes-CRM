@@ -11,7 +11,7 @@
   * { box-sizing: border-box; }
   html { min-width: 320px; background: var(--color-canvas); color: var(--color-strong); }
   body { min-width: 320px; min-height: 100vh; margin: 0; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: radial-gradient(circle at top right, #201b45 0, var(--color-canvas) 42rem); }
-  button, input { font: inherit; }
+  button, input, select, textarea { font: inherit; }
   :focus-visible { outline: 3px solid color-mix(in srgb, var(--color-brand) 45%, transparent); outline-offset: 2px; }
 }
 
@@ -26,9 +26,10 @@
   .badge { @apply inline-flex rounded-full px-2.5 py-1 text-xs font-semibold; }
   .badge-status { @apply bg-brand-soft text-brand; } .badge-priority { @apply bg-canvas text-strong; }
   .icon-button { @apply inline-flex rounded-lg border border-line p-2 text-strong hover:bg-canvas; }
+  .danger-icon-button { @apply text-danger hover:border-danger/60 hover:bg-danger-soft; }
   .lead-card, .state-card { @apply rounded-2xl border border-line bg-panel/95 p-5 shadow-sm transition-[border-color,box-shadow,transform] duration-200 hover:border-brand/40 hover:shadow-md; }
   .dialog-backdrop { @apply fixed inset-0 z-50 grid place-items-center bg-canvas/80 p-4 backdrop-blur-sm; }
-  .dialog-panel { @apply max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-panel p-6 shadow-xl; }
+  .dialog-panel { @apply max-h-[90vh] w-full max-w-xl overscroll-contain overflow-y-auto rounded-2xl bg-panel p-6 shadow-xl; }
   .danger-button { @apply inline-flex items-center justify-center gap-2 rounded-xl bg-danger px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60; }
   .skeleton { @apply animate-pulse rounded-2xl bg-line/70; }
   .timeline-item { animation: timeline-enter 220ms ease-out both; }

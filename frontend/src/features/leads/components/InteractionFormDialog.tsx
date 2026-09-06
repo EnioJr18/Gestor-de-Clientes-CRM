@@ -25,7 +25,7 @@ export function InteractionFormDialog({ leadId, interaction, onClose, onSuccess 
     }).catch((reason: unknown) => setError(normalizeApiError(reason)))
   }
 
-  return <Dialog title={interaction ? 'Editar interacao' : 'Registrar interacao'} onClose={onClose}>
+  return <Dialog title={interaction ? 'Editar interacao' : 'Registrar interacao'} onClose={onClose} busy={saving}>
     <InteractionForm interaction={interaction} submitting={saving} error={error} onSubmit={submit} onCancel={onClose} />
   </Dialog>
 }

@@ -54,4 +54,15 @@ describe('detalhes, edicao e exclusao de leads', () => {
     rerender(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><DeleteLeadDialog lead={lead} onClose={closed} onSuccess={success} /></QueryClientProvider>)
     await userEvent.click(screen.getByRole('button', { name: 'Excluir lead' })); await waitFor(() => expect(success).toHaveBeenCalled()); expect(calls).toBe(1)
   })
+
+  it('mantem o dialogo aberto enquanto a exclusao esta em andamento', async () => {
+    const closed = vi.fn(); const success = vi.fn()
+    server.use(http.delete(`${apiBaseUrl}/leads/7/`, async () => { await new Promise((resolve) => setTimeout(resolve, 40)); return new HttpResponse(null, { status: 204 }) }))
+    renderWithQuery(<DeleteLeadDialog lead={lead} onClose={closed} onSuccess={success} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Excluir lead' }))
+    expect(await screen.findByRole('button', { name: 'Excluindo...' })).toBeDisabled()
+    await userEvent.keyboard('{Escape}')
+    expect(closed).not.toHaveBeenCalled()
+    await waitFor(() => expect(success).toHaveBeenCalled())
+  })
 })

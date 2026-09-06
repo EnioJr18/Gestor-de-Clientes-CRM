@@ -56,7 +56,7 @@ function TimelineItem({ interaction, animated, onEdit, onDelete }: { interaction
         </div>
         <div className="flex gap-2">
           <button className="icon-button" type="button" aria-label={`Editar interacao de ${presentation.label} em ${timestamp}`} onClick={onEdit}><Pencil className="size-4" aria-hidden="true" /></button>
-          <button className="icon-button text-danger" type="button" aria-label={`Excluir interacao de ${presentation.label} em ${timestamp}`} onClick={onDelete}><Trash2 className="size-4" aria-hidden="true" /></button>
+          <button className="icon-button danger-icon-button" type="button" aria-label={`Excluir interacao de ${presentation.label} em ${timestamp}`} onClick={onDelete}><Trash2 className="size-4" aria-hidden="true" /></button>
         </div>
       </div>
       <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-strong">{interaction.nota}</p>

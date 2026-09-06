@@ -16,7 +16,7 @@ export function DeleteInteractionDialog({ leadId, interaction, onClose, onSucces
   }
 
   const label = interactionPresentation[interaction.tipo].label
-  return <Dialog title="Excluir interacao" onClose={onClose}>
+  return <Dialog title="Excluir interacao" onClose={onClose} busy={deletion.isPending}>
     <p className="text-muted">Deseja excluir a interacao de <strong className="text-strong">{label}</strong> registrada em {formatInteractionDate(interaction.data_interacao)}? Esta acao e irreversivel.</p>
     {message && <p className="mt-4 field-error" role="alert">{message}</p>}
     <div className="mt-6 flex flex-wrap justify-end gap-3">
