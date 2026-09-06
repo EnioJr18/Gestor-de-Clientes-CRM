@@ -1,5 +1,5 @@
 import { delay, http, HttpResponse } from 'msw'
-import { screen, waitFor } from '@testing-library/react'
+import { act, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 
@@ -23,9 +23,12 @@ describe('bootstrap e rotas', () => {
     const bootstrapLoading = screen.getByText('Validando sua sessao...')
     expect(bootstrapLoading).toBeVisible()
     await waitFor(() => expect(releaseRefresh).toBeTypeOf('function'))
-    releaseRefresh!()
+    await act(async () => {
+      releaseRefresh!()
+      await refreshPending
+    })
     await waitFor(() => expect(bootstrapLoading).not.toBeVisible())
-    await vi.dynamicImportSettled()
+    await act(async () => { await vi.dynamicImportSettled() })
   }, 20_000)
 
   it('restaura a sessao pelo refresh e users/me', async () => {
@@ -33,7 +36,7 @@ describe('bootstrap e rotas', () => {
     renderApp('/app')
     const bootstrapLoading = screen.getByText('Validando sua sessao...')
     await waitFor(() => expect(bootstrapLoading).not.toBeVisible())
-    await vi.dynamicImportSettled()
+    await act(async () => { await vi.dynamicImportSettled() })
     expect(getAccessToken()).toBe('boot-access')
   }, 20_000)
 
@@ -52,7 +55,7 @@ describe('bootstrap e rotas', () => {
   it('exibe fallback 404', async () => {
     mockUnauthenticatedBootstrap()
     renderApp('/nao-existe')
-    await vi.dynamicImportSettled()
+    await act(async () => { await vi.dynamicImportSettled() })
     expect(await screen.findByRole('heading', { name: 'Pagina nao encontrada' })).toBeInTheDocument()
   }, 20_000)
 })

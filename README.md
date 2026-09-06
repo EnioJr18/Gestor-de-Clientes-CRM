@@ -1,7 +1,7 @@
 # 🚀 CRM.Pro - Sistema de Gestão de Clientes
 
-![Python](https://img.shields.io/badge/Python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Django](https://img.shields.io/badge/Django-5.0-092E20?style=for-the-badge&logo=django&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.14-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Django](https://img.shields.io/badge/Django-6.0-092E20?style=for-the-badge&logo=django&logoColor=white)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-5-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white)
 ![Status](https://img.shields.io/badge/Development%2520Status-Active-green?style=for-the-badge&logo=github&label=Status)
 
@@ -25,9 +25,9 @@ Sistema de Gestão de Relacionamento com Clientes (CRM) desenvolvido com **Djang
 
 ## 🛠️ Tecnologias Utilizadas
 
-- **Back-end e Core:** Python, Django 5.
-- **Front-end:** HTML5, CSS3, Bootstrap 5 e Chart.js.
-- **Banco de Dados:** SQLite (Desenvolvimento) / PostgreSQL (Planejado para Produção).
+- **Back-end e Core:** Python 3.14, Django 6, Django REST Framework e Simple JWT.
+- **Front-end:** React, TypeScript, Vite, Tailwind CSS e Chart.js; as paginas Django legadas usam Bootstrap.
+- **Banco de Dados:** PostgreSQL 18 no desenvolvimento e producao; SQLite e somente fallback explicito de diagnostico.
 - **DevOps & Deploy:** Render, WhiteNoise, Gunicorne Git & GitHub.
 - **Qualidade:** Class Based Views, Crispy Forms, Testes Automatizados
 
@@ -88,7 +88,7 @@ Você pode testar o sistema funcionando em tempo real clicando no link abaixo:
 
 ### Pré-requisitos
 * Python instalado
-* Conta no Neon (ou PostgreSQL local)
+* Docker Desktop para o PostgreSQL local
 
 ### Passo a Passo
 
@@ -124,7 +124,7 @@ Você pode testar o sistema funcionando em tempo real clicando no link abaixo:
     docker compose stop postgres
     ```
 
-    Para apagar o volume local descartavel:
+    Para apagar somente um volume local comprovadamente descartavel:
     ```bash
     docker compose down -v
     ```
@@ -194,7 +194,7 @@ VITE_API_BASE_URL=http://localhost:8000/api/v1
 
 Use `localhost` de forma consistente no backend e no Vite para que CORS, CSRF e o cookie de refresh tenham a mesma origem esperada. O PostgreSQL local e iniciado com `docker compose up -d postgres`; crie um administrador com `python backend/manage.py createsuperuser`.
 
-Estado atual: autenticacao SPA e gestao de leads estao implementadas. Dashboard completo, interacoes, perfil editavel, relatorios e exportacao permanecem pendentes.
+Estado atual: autenticacao SPA, dashboard, leads e interacoes estao implementados. Perfil editavel na SPA e novos relatorios permanecem pendentes; as paginas Django legadas preservam o fluxo de perfil e exportacao CSV existente.
 
 
 
