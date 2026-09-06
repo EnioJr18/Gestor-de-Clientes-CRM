@@ -1,0 +1,25 @@
+FROM python:3.14-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /app
+
+RUN addgroup --system crm && adduser --system --ingroup crm crm
+
+COPY backend/requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY backend/ ./
+RUN DJANGO_SETTINGS_MODULE=config.settings.development \
+    CRM_LOAD_DOTENV=0 \
+    USE_SQLITE=True \
+    python manage.py collectstatic --noinput
+RUN chown -R crm:crm /app
+
+USER crm
+
+EXPOSE 8000
+
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--access-logfile", "-", "--error-logfile", "-"]

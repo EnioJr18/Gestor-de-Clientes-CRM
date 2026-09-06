@@ -90,6 +90,56 @@ Você pode testar o sistema funcionando em tempo real clicando no link abaixo:
 * Python instalado
 * Docker Desktop para o PostgreSQL local
 
+### Ambiente Docker reproduzivel
+
+O fluxo recomendado nao exige Python, Node.js ou PostgreSQL instalados no host. Copie `.env.example` para `.env`, ajuste apenas os valores locais de `POSTGRES_*` e `SECRET_KEY`, e suba toda a stack:
+
+```bash
+docker compose up --build
+```
+
+Servicos e portas:
+
+- `frontend`: `http://localhost:8080` (unica porta publicada); ele encaminha `/api/` para o backend na rede Docker.
+- `backend`: Gunicorn na porta interna `8000`, com health check em `/api/v1/health/`.
+- `postgres`: PostgreSQL 18, acessivel somente na rede Docker e persistido no volume `crm_postgres_data`.
+- `migrate`: processo controlado que aplica migrations antes de liberar o backend; migrations nao rodam no processo web.
+
+No ambiente local, runtime e migration usam o mesmo usuario PostgreSQL para manter a configuracao simples. Em producao, o processo `migrate` deve receber uma credencial temporaria de deploy com privilegios de schema, enquanto o backend deve usar uma credencial de runtime com apenas os privilegios necessarios pela aplicacao.
+
+O cache local e suficiente para desenvolvimento. Em producao com mais de um processo ou replica, configure um backend compartilhado em `CACHE_BACKEND`/`CACHE_LOCATION` e ative `REQUIRE_SHARED_THROTTLE_CACHE=True`; esta sprint nao adiciona Redis.
+
+Para executar os testes em containers, com banco PostgreSQL controlado:
+
+```bash
+docker compose --profile test run --rm backend-tests
+docker compose --profile test run --rm frontend-tests
+```
+
+Para encerrar a stack preservando os dados locais:
+
+```bash
+docker compose down
+```
+
+`docker compose down -v` tambem remove `crm_postgres_data` e todos os dados locais persistidos. Use-o somente quando esse volume for comprovadamente descartavel.
+
+`VITE_API_BASE_URL` e uma configuracao publica incorporada no bundle. Na imagem Docker ela vale `/api/v1`; secrets, URLs de banco e chaves JWT nunca devem usar o prefixo `VITE_`.
+
+### CI
+
+O workflow `.github/workflows/ci.yml` roda em pull requests e pushes para `main` e `develop`. Ele valida backend em PostgreSQL 18, migrations, OpenAPI, dependencias Python, testes/lint/typecheck/build da SPA e os builds Docker sem publicar imagens ou fazer deploy.
+
+Os checks locais equivalentes sao:
+
+```bash
+docker compose --profile test run --rm backend-tests
+cd frontend && npm ci && npm run test:run && npm run lint && npm run typecheck && npm run build
+docker compose config
+docker build --file Dockerfile.backend --tag crm-pro-backend:local .
+docker build --file frontend/Dockerfile --tag crm-pro-frontend:local frontend
+```
+
 ### Passo a Passo
 
 1.  **Clone o repositório**

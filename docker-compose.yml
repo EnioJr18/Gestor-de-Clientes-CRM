@@ -4,20 +4,108 @@ services:
       context: .
       dockerfile: Dockerfile.postgres
     image: crm-pro-postgres:18
-    container_name: crm_pro_postgres
     environment:
-      POSTGRES_DB: crm_pro
-      POSTGRES_USER: crm_user
-      POSTGRES_PASSWORD: crm_password
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB must be set in .env}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER must be set in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
     volumes:
       - crm_postgres_data:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U crm_user -d crm_pro"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - crm_pro_network
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: crm-pro-backend:local
+    environment: &backend_environment
+      CRM_LOAD_DOTENV: "0"
+      DJANGO_SETTINGS_MODULE: config.settings.development
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set in .env}
+      DEBUG: "True"
+      ALLOWED_HOSTS: localhost,127.0.0.1,backend
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      TEST_DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_TEST_DB:?POSTGRES_TEST_DB must be set in .env}
+      CORS_ALLOWED_ORIGINS: http://localhost:${FRONTEND_PORT:-8080}
+      CSRF_TRUSTED_ORIGINS: http://localhost:${FRONTEND_PORT:-8080}
+      JWT_REFRESH_COOKIE_SECURE: "False"
+      CACHE_BACKEND: django.core.cache.backends.locmem.LocMemCache
+      CACHE_LOCATION: crm-pro
+      CACHE_TIMEOUT: "300"
+    command: ["python", "manage.py", "migrate", "--noinput"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - crm_pro_network
+
+  backend:
+    image: crm-pro-backend:local
+    environment: *backend_environment
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/', timeout=3).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+    networks:
+      - crm_pro_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: /api/v1
+    image: crm-pro-frontend:local
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 5s
+    networks:
+      - crm_pro_network
+
+  backend-tests:
+    image: crm-pro-backend:local
+    profiles: ["test"]
+    environment:
+      <<: *backend_environment
+      DJANGO_SETTINGS_MODULE: config.settings.test
+      JWT_REFRESH_COOKIE_SECURE: "True"
+    command: ["python", "manage.py", "test", "-v", "2"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - crm_pro_network
+
+  frontend-tests:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: build
+    profiles: ["test"]
+    command: ["npm", "run", "test:run", "--", "--maxWorkers=1", "--pool=forks"]
 
 volumes:
   crm_postgres_data:
+
+networks:
+  crm_pro_network:

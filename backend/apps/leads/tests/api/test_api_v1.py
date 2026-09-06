@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from unittest.mock import patch
 
 from django.urls import reverse
 from django.utils import timezone
@@ -26,6 +27,14 @@ class HealthApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json(), {"status": "ok"})
         self.assertNotIn("database", response.content.decode().lower())
+
+    @patch("apps.leads.api.views.database_is_available", return_value=False)
+    def test_health_reports_unavailable_when_database_cannot_be_reached(self, database_is_available):
+
+        response = self.client.get(reverse("api_v1:health"))
+
+        self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+        self.assertEqual(response.json(), {"status": "unavailable"})
 
 
 class CurrentUserApiTests(ApiTestMixin, APITestCase):

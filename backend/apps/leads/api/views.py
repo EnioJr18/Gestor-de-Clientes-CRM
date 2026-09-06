@@ -1,4 +1,5 @@
-from django.db import IntegrityError
+from django.db import IntegrityError, connections
+from django.db.utils import DatabaseError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema
@@ -16,11 +17,27 @@ from .filters import LeadFilter, StrictOrderingFilter
 from .serializers import InteractionSerializer, LeadSerializer
 
 
-@extend_schema(auth=[], responses={200: OpenApiResponse(description="API saudavel.")})
+@extend_schema(
+    auth=[],
+    responses={
+        200: OpenApiResponse(description="API saudavel."),
+        503: OpenApiResponse(description="Banco de dados indisponivel."),
+    },
+)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def health(request):
+    if not database_is_available():
+        return Response({"status": "unavailable"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
     return Response({"status": "ok"})
+
+
+def database_is_available():
+    try:
+        connections["default"].ensure_connection()
+    except DatabaseError:
+        return False
+    return True
 
 
 class LeadViewSet(viewsets.ModelViewSet):
