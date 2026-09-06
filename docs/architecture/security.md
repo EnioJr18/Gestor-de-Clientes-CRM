@@ -115,6 +115,8 @@ RLS PostgreSQL nao esta habilitado. A aplicacao usa uma unica credencial de banc
 
 Antes do go-live, a operacao deve definir backup automatizado do PostgreSQL, retencao, responsavel, teste periodico de restore e procedimento de incidente. O usuario runtime deve receber somente privilegios de aplicacao; migrations devem usar uma credencial de deploy separada e temporaria. Sem estrategia de backup/restore validada, o release fica bloqueado.
 
+O procedimento controlado de backup, restore e validacao esta em `docs/architecture/backup-and-recovery.md`. Dumps continuam fora do Git e da imagem de aplicacao.
+
 ## Dependencias
 
 Dependencias devem ser atualizadas de forma controlada, com testes e changelog quando houver risco.

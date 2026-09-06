@@ -9,6 +9,10 @@ env/
 db.sqlite3
 backend/db.sqlite3
 *.sqlite3
+/backups/
+*.backup
+*.dump
+*.sql.gz
 .pytest_cache/
 .coverage
 htmlcov/
