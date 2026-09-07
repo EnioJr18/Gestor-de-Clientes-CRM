@@ -3,9 +3,10 @@
 ## Estado da Sprint 19.3
 
 O repositorio possui imagens Docker reproduziveis, health checks, migrations
-separadas do processo web e CI versionada. Ele ainda nao possui um destino de
-deploy, dominio, secrets provisionados, banco PostgreSQL de producao, cache
-compartilhado, destino de backup ou responsavel operacional comprovados.
+separadas do processo web e CI versionada. A arquitetura confirmada e Vercel
+para frontend, Render para backend e Neon PostgreSQL para banco. Configuracoes
+reais de servico, dominio, secrets, cache, backup e responsavel operacional
+ainda precisam ser confirmadas no console de cada provedor.
 
 Por isso, a decisao desta sprint e **NO-GO**: nenhum deploy, migration remota,
 acesso ao Neon ou alteracao em producao deve ser executado ate que todos os
@@ -13,8 +14,9 @@ itens abaixo tenham evidencia registrada pela operacao.
 
 ## Pre-requisitos de go-live
 
-1. Escolher a plataforma, a regiao e o responsavel operacional do servico.
-2. Provisionar PostgreSQL gerenciado ou branch Neon confirmada como producao,
+1. Confirmar os servicos Render, Neon e Vercel, seus dominios e o responsavel
+   operacional do ambiente.
+2. Confirmar o banco Neon de producao e a credencial de migration separada,
    com TLS e `sslmode=require`. Manter uma credencial temporaria e auditada
    para migrations, separada da credencial limitada de runtime.
 3. Cadastrar secrets somente no provedor: `SECRET_KEY` aleatoria, `DATABASE_URL`,
@@ -41,14 +43,14 @@ itens abaixo tenham evidencia registrada pela operacao.
 Com todos os pre-requisitos aprovados, registrar a janela de mudanca e o hash
 do commit. Fazer backup e verificar que ele pode ser lido antes de migrar.
 
-1. Construir as imagens pelo commit aprovado e publicar em registro privado da
-   plataforma.
-2. Executar `python manage.py migrate --noinput` uma unica vez com a credencial
-   de deploy. Interromper se o plano incluir uma operacao inesperada.
+1. Construir o backend pelo commit aprovado no Render e o frontend no Vercel.
+2. Executar `python manage.py migrate --noinput` uma unica vez em pre-deploy
+   controlado no Render, com credencial de migration. Interromper se o plano
+   incluir uma operacao inesperada.
 3. Executar `python manage.py collectstatic --noinput` na imagem ou release
    task. O `Dockerfile.backend` ja gera os assets do Django com WhiteNoise.
-4. Subir o backend Gunicorn e o frontend Nginx com a configuracao de producao.
-   Nunca expor PostgreSQL diretamente na internet.
+4. Subir Gunicorn no Render e publicar o bundle estatico no Vercel. Nunca
+   expor PostgreSQL diretamente na internet.
 5. Aguardar os health checks e validar publicamente HTTPS, `GET /health`,
    `GET /api/v1/health/`, carregamento da SPA, login, `users/me`, uma listagem
    autenticada de leads e o console do navegador sem erro CORS/CSRF.

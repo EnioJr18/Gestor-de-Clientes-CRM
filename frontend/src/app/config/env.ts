@@ -2,12 +2,19 @@ import { z } from 'zod'
 
 const apiUrlSchema = z
   .string({ error: 'VITE_API_BASE_URL e obrigatoria.' })
-  .url('VITE_API_BASE_URL deve ser uma URL valida.')
   .transform((value) => value.replace(/\/$/, ''))
   .refine((value) => {
-    const url = new URL(value)
-    return ['http:', 'https:'].includes(url.protocol) && url.pathname.endsWith('/api/v1')
-  }, 'VITE_API_BASE_URL deve usar HTTP(S) e terminar em /api/v1.')
+    if (value === '/api/v1') {
+      return true
+    }
+
+    try {
+      const url = new URL(value)
+      return ['http:', 'https:'].includes(url.protocol) && url.pathname.endsWith('/api/v1')
+    } catch {
+      return false
+    }
+  }, 'VITE_API_BASE_URL deve usar HTTP(S) e terminar em /api/v1, ou ser /api/v1 para o proxy local.')
 
 export type AppConfig = {
   apiBaseUrl: string

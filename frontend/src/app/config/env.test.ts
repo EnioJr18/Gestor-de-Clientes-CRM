@@ -7,6 +7,12 @@ describe('configuracao da aplicacao', () => {
     })
   })
 
+  it('aceita o caminho relativo usado pelo proxy Docker local', () => {
+    expect(loadAppConfig({ VITE_API_BASE_URL: '/api/v1' })).toEqual({
+      apiBaseUrl: '/api/v1',
+    })
+  })
+
   it.each([undefined, 'ftp://example.com/api/v1', 'https://example.com/api'])('rejeita URL ausente ou invalida: %s', (value) => {
     expect(() => loadAppConfig({ VITE_API_BASE_URL: value })).toThrow()
   })

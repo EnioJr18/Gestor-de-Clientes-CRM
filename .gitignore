@@ -26,3 +26,7 @@ frontend/.env
 frontend/.env.*
 !frontend/.env.example
 .DS_Store
+
+# AWS CLI state and EC2 private keys must stay outside version control.
+.aws/
+*.pem
