@@ -117,6 +117,22 @@ class ProductionSettingsTests(SimpleTestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("SECRET_KEY e obrigatoria", result.stderr)
 
+    def test_secret_key_diagnostics_log_only_derived_values(self):
+        secret_key = "django-insecure-diagnostic-value-that-must-never-be-logged-123456"
+        result = import_settings(
+            "config.settings.production",
+            {**self.valid_env, "SECRET_KEY": secret_key},
+        )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("production_secret_key_diagnostic", result.stderr)
+        self.assertIn("present=True", result.stderr)
+        self.assertIn(f"length={len(secret_key)}", result.stderr)
+        self.assertIn(f"distinct_characters={len(set(secret_key))}", result.stderr)
+        self.assertIn("has_django_insecure_prefix=True", result.stderr)
+        self.assertNotIn(secret_key, result.stdout)
+        self.assertNotIn(secret_key, result.stderr)
+
     def test_requires_database_url(self):
         env = self.valid_env.copy()
         env.pop("DATABASE_URL")

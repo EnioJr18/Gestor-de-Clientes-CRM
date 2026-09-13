@@ -1,9 +1,32 @@
+import logging
+import os
+
 from django.core.exceptions import ImproperlyConfigured
 
 from .base import database_url_config, env_bool, env_list, env_origins, required_env
 from .base import *  # noqa: F403
 
 
+def log_secret_key_diagnostics():
+    """Emit derived startup diagnostics without exposing the secret value."""
+    raw_secret_key = os.environ.get("SECRET_KEY")
+    effective_secret_key = raw_secret_key.strip() if raw_secret_key is not None else ""
+
+    # Settings validation runs before Django configures LOGGING, so use warning
+    # to ensure this temporary startup diagnostic reaches the process stderr.
+    logging.getLogger(__name__).warning(
+        "production_secret_key_diagnostic present=%s length=%d distinct_characters=%d "
+        "has_django_insecure_prefix=%s django_settings_module=%s crm_load_dotenv=%s",
+        raw_secret_key is not None,
+        len(effective_secret_key),
+        len(set(effective_secret_key)),
+        effective_secret_key.startswith("django-insecure-"),
+        os.environ.get("DJANGO_SETTINGS_MODULE"),
+        os.environ.get("CRM_LOAD_DOTENV", "1"),
+    )
+
+
+log_secret_key_diagnostics()
 SECRET_KEY = required_env("SECRET_KEY")
 if SECRET_KEY.startswith("django-insecure-") or len(set(SECRET_KEY)) < 5 or len(SECRET_KEY) < 50:
     raise ImproperlyConfigured(
