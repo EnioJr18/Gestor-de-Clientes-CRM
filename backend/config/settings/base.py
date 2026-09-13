@@ -225,6 +225,7 @@ REST_FRAMEWORK = {
         "auth_login": os.environ.get("JWT_LOGIN_THROTTLE_RATE", "5/min"),
         "auth_refresh": os.environ.get("JWT_REFRESH_THROTTLE_RATE", "20/min"),
         "auth_csrf": os.environ.get("JWT_CSRF_THROTTLE_RATE", "60/min"),
+        "auth_register": os.environ.get("JWT_REGISTER_THROTTLE_RATE", "5/hour"),
     },
 }
 

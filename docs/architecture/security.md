@@ -47,7 +47,7 @@ O backend sempre e a fonte final de validacao. Validacao no frontend melhora UX,
 - O segredo padrao e `SECRET_KEY`; rotaciona-lo invalida todos os JWT existentes.
 - Login aceita somente JSON, impedindo submissao simples por formulario cross-site; CORS exige origem explicita para o preflight. Refresh e logout exigem cookie CSRF + header `X-CSRFToken`; nao ha `csrf_exempt`.
 - Login e refresh rejeitam usuario inativo e usam mensagem generica contra enumeracao.
-- Throttling local por IP: login 5/min, refresh 20/min e CSRF 60/min, todos configuraveis. Cache local nao coordena limites entre multiplas instancias; Redis continua fora desta sprint.
+- Throttling local por IP: login 5/min, cadastro 5/hour, refresh 20/min e CSRF 60/min, todos configuraveis. Cache local nao coordena limites entre multiplas instancias ou workers; Redis continua fora desta sprint.
 - A sessao Django permanece ativa e continua exigindo CSRF para escrita.
 - O bootstrap obtem CSRF, tenta refresh uma vez e consulta `users/me` antes de liberar rotas.
 - Refreshes concorrentes compartilham uma unica promessa; falha definitiva limpa usuario e access token sem loop de retry.

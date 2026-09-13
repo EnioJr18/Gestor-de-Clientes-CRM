@@ -1,5 +1,7 @@
 from django.conf import settings
+from django.contrib.auth import update_session_auth_hash
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 from django.middleware.csrf import get_token
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -12,19 +14,23 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .authentication import PublicAuthEndpointAuthentication, enforce_csrf
 from .cookies import delete_refresh_cookie, get_refresh_cookie, set_refresh_cookie
 from .serializers import (
     AccessResponseSerializer,
+    ChangePasswordSerializer,
     CsrfResponseSerializer,
     EmptyPayloadSerializer,
     LoginResponseSerializer,
     LoginSerializer,
+    RegistrationSerializer,
     SafeUserSerializer,
+    UserProfileSerializer,
 )
-from .throttles import CsrfRateThrottle, LoginRateThrottle, RefreshRateThrottle
+from .throttles import CsrfRateThrottle, LoginRateThrottle, RefreshRateThrottle, RegistrationRateThrottle
 
 
 REFRESH_COOKIE_PARAMETER = OpenApiParameter(
@@ -152,9 +158,73 @@ class LogoutView(APIView):
         return delete_refresh_cookie(Response(status=status.HTTP_204_NO_CONTENT))
 
 
+class RegistrationView(APIView):
+    authentication_classes = [PublicAuthEndpointAuthentication]
+    permission_classes = [AllowAny]
+    throttle_classes = [RegistrationRateThrottle]
+    parser_classes = [JSONParser]
+
+    @extend_schema(
+        auth=[],
+        request=RegistrationSerializer,
+        responses={
+            201: SafeUserSerializer,
+            400: OpenApiResponse(description="Payload invalido."),
+            415: OpenApiResponse(description="O cadastro aceita somente JSON."),
+            429: OpenApiResponse(description="Limite de cadastros excedido."),
+        },
+    )
+    def post(self, request):
+        serializer = RegistrationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response(SafeUserSerializer(user).data, status=status.HTTP_201_CREATED)
+
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser]
+
+    @extend_schema(
+        request=ChangePasswordSerializer,
+        responses={
+            204: None,
+            400: OpenApiResponse(description="Payload invalido."),
+            401: OpenApiResponse(description="Autenticacao obrigatoria."),
+        },
+    )
+    def post(self, request):
+        serializer = ChangePasswordSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+
+        with transaction.atomic():
+            request.user.set_password(serializer.validated_data["new_password"])
+            request.user.save(update_fields=["password"])
+            for outstanding_token in OutstandingToken.objects.filter(user=request.user):
+                BlacklistedToken.objects.get_or_create(token=outstanding_token)
+
+        if request.session.get("_auth_user_id") == str(request.user.pk):
+            update_session_auth_hash(request, request.user)
+        return delete_refresh_cookie(Response(status=status.HTTP_204_NO_CONTENT))
+
+
 class CurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(responses={200: SafeUserSerializer, 401: OpenApiResponse(description="Autenticacao obrigatoria.")})
     def get(self, request):
         return Response(SafeUserSerializer(request.user).data)
+
+    @extend_schema(
+        request=UserProfileSerializer,
+        responses={
+            200: SafeUserSerializer,
+            400: OpenApiResponse(description="Payload invalido."),
+            401: OpenApiResponse(description="Autenticacao obrigatoria."),
+        },
+    )
+    def patch(self, request):
+        serializer = UserProfileSerializer(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response(SafeUserSerializer(user).data)

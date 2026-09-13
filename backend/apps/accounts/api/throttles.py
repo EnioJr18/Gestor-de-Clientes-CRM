@@ -16,3 +16,7 @@ class RefreshRateThrottle(IpScopedThrottle):
 
 class CsrfRateThrottle(IpScopedThrottle):
     scope = "auth_csrf"
+
+
+class RegistrationRateThrottle(IpScopedThrottle):
+    scope = "auth_register"
