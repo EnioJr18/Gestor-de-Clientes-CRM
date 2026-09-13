@@ -241,8 +241,16 @@ SIMPLE_JWT = {
 }
 
 JWT_REFRESH_COOKIE_NAME = os.environ.get("JWT_REFRESH_COOKIE_NAME", "crm_refresh")
-JWT_REFRESH_COOKIE_SAMESITE = os.environ.get("JWT_REFRESH_COOKIE_SAMESITE", "Lax")
-if JWT_REFRESH_COOKIE_SAMESITE not in {"Lax", "Strict", "None"}:
+JWT_REFRESH_COOKIE_SAMESITE_VALUES = {
+    "lax": "Lax",
+    "strict": "Strict",
+    "none": "None",
+}
+JWT_REFRESH_COOKIE_SAMESITE_RAW = os.environ.get("JWT_REFRESH_COOKIE_SAMESITE", "Lax")
+JWT_REFRESH_COOKIE_SAMESITE = JWT_REFRESH_COOKIE_SAMESITE_VALUES.get(
+    JWT_REFRESH_COOKIE_SAMESITE_RAW.strip().lower()
+)
+if JWT_REFRESH_COOKIE_SAMESITE is None:
     raise ImproperlyConfigured("JWT_REFRESH_COOKIE_SAMESITE deve ser Lax, Strict ou None.")
 JWT_REFRESH_COOKIE_SECURE = env_bool("JWT_REFRESH_COOKIE_SECURE", False)
 JWT_REFRESH_COOKIE_DOMAIN = os.environ.get("JWT_REFRESH_COOKIE_DOMAIN", "").strip() or None

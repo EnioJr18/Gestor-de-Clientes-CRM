@@ -33,6 +33,7 @@ def import_settings(module, extra_env=None):
     env.pop("CACHE_LOCATION", None)
     env.pop("CACHE_TIMEOUT", None)
     env.pop("REQUIRE_SHARED_THROTTLE_CACHE", None)
+    env.pop("JWT_REFRESH_COOKIE_SAMESITE", None)
     if extra_env:
         env.update(extra_env)
 
@@ -63,6 +64,7 @@ def run_settings_code(module, code, extra_env=None):
     env.pop("CACHE_LOCATION", None)
     env.pop("CACHE_TIMEOUT", None)
     env.pop("REQUIRE_SHARED_THROTTLE_CACHE", None)
+    env.pop("JWT_REFRESH_COOKIE_SAMESITE", None)
     if extra_env:
         env.update(extra_env)
 
@@ -155,6 +157,39 @@ class ProductionSettingsTests(SimpleTestCase):
     def test_valid_environment_imports(self):
         result = import_settings("config.settings.production", self.valid_env)
         self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_normalizes_refresh_cookie_samesite_values(self):
+        cases = {
+            "Lax": "Lax",
+            "lax": "Lax",
+            "LAX": "Lax",
+            "Strict": "Strict",
+            "strict": "Strict",
+            "None": "None",
+            "none": "None",
+            "NONE": "None",
+            " None ": "None",
+        }
+
+        for raw_value, expected_value in cases.items():
+            with self.subTest(raw_value=raw_value):
+                result = run_settings_code(
+                    "config.settings.production",
+                    "print(JWT_REFRESH_COOKIE_SAMESITE)",
+                    {**self.valid_env, "JWT_REFRESH_COOKIE_SAMESITE": raw_value},
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout.strip(), expected_value)
+
+    def test_rejects_empty_quoted_and_invalid_refresh_cookie_samesite_values(self):
+        for raw_value in ["", '"None"', "invalid"]:
+            with self.subTest(raw_value=raw_value):
+                result = import_settings(
+                    "config.settings.production",
+                    {**self.valid_env, "JWT_REFRESH_COOKIE_SAMESITE": raw_value},
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("JWT_REFRESH_COOKIE_SAMESITE deve ser Lax, Strict ou None.", result.stderr)
 
     def test_production_logs_to_stdout_with_timestamped_formatter(self):
         result = run_settings_code(
