@@ -1,261 +1,205 @@
-# 🚀 CRM.Pro - Sistema de Gestão de Clientes
+# CRM.Pro
 
-![Python](https://img.shields.io/badge/Python-3.14-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Django](https://img.shields.io/badge/Django-6.0-092E20?style=for-the-badge&logo=django&logoColor=white)
-![Bootstrap](https://img.shields.io/badge/Bootstrap-5-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white)
-![Status](https://img.shields.io/badge/Development%2520Status-Active-green?style=for-the-badge&logo=github&label=Status)
+CRM para organizacao de leads, acompanhamento de interacoes e visao comercial em um so lugar.
 
-Sistema de Gestão de Relacionamento com Clientes (CRM) desenvolvido com **Django**. Focado em produtividade, organização de leads e acompanhamento de métricas de vendas. O projeto oferece uma interface elegante (Dark Mode) e isolamento de dados por usuário, funcionando como um SaaS (Software as a Service).
+## 📌 Visão geral
 
----
+O CRM.Pro centraliza o acompanhamento de relacionamentos comerciais. A aplicacao permite que cada usuario organize seus leads, registre interacoes e acompanhe indicadores do proprio funil em uma interface web responsiva.
 
-## 📸 Vídeo Demonstração
-![Image](https://github.com/user-attachments/assets/b3bf4080-0c75-497e-a54f-9dd092621988)
+## Demonstração
 
-## ✨ Funcionalidades Principais
+- Frontend em producao: [gestor-de-clientes-crm.vercel.app](https://gestor-de-clientes-crm.vercel.app)
+- API health check: [crm-pro-api-b86l.onrender.com/api/v1/health/](https://crm-pro-api-b86l.onrender.com/api/v1/health/)
+- Documentacao OpenAPI: [crm-pro-api-b86l.onrender.com/api/docs/](https://crm-pro-api-b86l.onrender.com/api/docs/)
 
-- **🔐 Autenticação Segura:** Sistema completo de Login/Cadastro e Recuperação de Senha.
-- **🛡️ Multi-Tenant (Isolamento de Dados):** Cada usuário vê apenas os seus próprios leads. Acesso cruzado é bloqueado.
-- **🌑 UI/UX Moderna:** Interface responsiva com tema **Dark/Cyberpunk**, Sidebar fixa e componentes Bootstrap customizados.
-- **📊 Dashboard Interativo:** Gráficos em tempo real (Chart.js) para análise de Status e Prioridade.
-- **📝 Gestão de Leads (CRUD):** CRUD completo (Criar, Listar, Editar, Excluir) com segurança por usuário.
-- **⚙️ Perfil de Usuário:** Área para atualização de dados cadastrais.
-- **🗄 Histórico de Interações:** Registro detalhado de contatos com cada cliente.
-- **📈 Exportação de Dados:** Relatórios em CSV para análise externa.
+O frontend esta publicado na Vercel e a API Django esta publicada no Render, usando PostgreSQL hospedado no Neon.
 
-## 🛠️ Tecnologias Utilizadas
+## ✨ Principais funcionalidades
 
-- **Back-end e Core:** Python 3.14, Django 6, Django REST Framework e Simple JWT.
-- **Front-end:** React, TypeScript, Vite, Tailwind CSS e Chart.js; as paginas Django legadas usam Bootstrap.
-- **Banco de Dados:** PostgreSQL 18 no desenvolvimento e producao; SQLite e somente fallback explicito de diagnostico.
-- **DevOps & Deploy:** Render, WhiteNoise, Gunicorne Git & GitHub.
-- **Qualidade:** Class Based Views, Crispy Forms, Testes Automatizados
+- Autenticacao, cadastro de usuarios e encerramento de sessao.
+- Gerenciamento do proprio perfil e alteracao de senha.
+- Dashboard com metricas, graficos e resumo comercial por periodo.
+- CRUD de leads com busca, filtros, ordenacao e paginacao.
+- Registro de interacoes em timeline por lead.
+- Isolamento de dados por usuario e protecao contra acesso cruzado.
+- Validacoes de entrada e mensagens de erro consistentes.
+- API REST documentada com OpenAPI, Swagger UI e ReDoc.
 
-## Arquitetura
+## 🛠️ Tecnologias
 
-A documentacao arquitetural esta disponivel em `docs/architecture/`.
-As principais decisoes estao registradas em `docs/adr/`.
-Estrutura resumida:
+### Frontend
+
+- React, TypeScript e Vite
+- Tailwind CSS
+- TanStack Query
+- React Hook Form e Zod
+- Axios e React Router
+- Chart.js e Lucide React
+- Vitest, Testing Library e MSW
+
+### Backend
+
+- Python e Django
+- Django REST Framework
+- PostgreSQL
+- Simple JWT
+- drf-spectacular e django-filter
+
+### Infraestrutura
+
+- Docker e Docker Compose
+- GitHub Actions
+- Vercel
+- Render
+- Neon
+
+## 🧱 Arquitetura
 
 ```text
-CRM_Portfolio/
-├── backend/
-│   ├── apps/
-│   │   └── leads/
-│   ├── config/
-│   ├── manage.py
-│   └── requirements.txt
-├── docs/
-└── frontend/  # SPA React + TypeScript
+Vercel
+  |
+  v
+React / Vite
+  | HTTPS
+  v
+Render
+  |
+  v
+Django / Django REST Framework
+  |
+  v
+Neon PostgreSQL
 ```
 
-## API REST
+Frontend e backend sao projetos separados no mesmo repositorio. A SPA consome a API REST por HTTPS e a producao utiliza PostgreSQL. O container do backend aplica migrations antes de iniciar o Gunicorn, para que o schema seja atualizado de forma controlada no deploy.
 
-A API v1 esta disponivel em:
+## 🛡️ Seguranca
+
+- Autenticacao JWT com refresh token em cookie `HttpOnly`.
+- CSRF aplicado aos fluxos baseados em cookie.
+- CORS com origens explicitas.
+- Cookies seguros em producao.
+- Ownership por usuario e protecao contra IDOR nos recursos da API.
+- Validacao de payloads e limites de requisicao nos endpoints sensiveis.
+- Segredos e configuracoes de ambiente fornecidos por variaveis de ambiente.
+
+Nenhum valor sensivel e versionado no repositorio.
+
+## Qualidade
+
+- 281 testes no backend, com PostgreSQL no fluxo de testes e CI.
+- 71 testes no frontend.
+- Typecheck, lint e build da SPA.
+- Validacao de migrations, `manage.py check` e schema OpenAPI.
+- Pipeline GitHub Actions para pull requests e branches `main` e `develop`.
+
+## Estrutura do projeto
 
 ```text
-/api/v1/health/
-/api/v1/auth/csrf/
-/api/v1/auth/login/
-/api/v1/auth/refresh/
-/api/v1/auth/logout/
-/api/v1/users/me/
-/api/v1/leads/
-/api/v1/dashboard/summary/
-/api/schema/
-/api/docs/
-/api/redoc/
+.
+|-- backend/                 # Django, DRF, apps e migrations
+|-- frontend/                # SPA React/TypeScript/Vite
+|-- docs/                    # Arquitetura e decisoes tecnicas
+|-- .github/workflows/       # Pipeline de CI
+|-- Dockerfile.backend       # Imagem do backend
+|-- docker-compose.yml       # Ambiente local com PostgreSQL 18
+|-- Dockerfile.postgres
+|-- vercel.json              # Configuracao da SPA na Vercel
+`-- README.md
 ```
 
-A API aceita JWT Bearer para a SPA React e preserva sessao Django para o frontend legado. O access token curto fica somente em memoria no browser; o refresh token fica em cookie HttpOnly, rotaciona a cada uso e e revogado por blacklist. Refresh e logout exigem CSRF.
+## Execucao local
 
-`GET /api/v1/dashboard/summary/` exige autenticacao e retorna apenas metricas dos leads do usuario autenticado. Aceita `period=7d|30d|90d|12m` ou `period=custom&date_from=YYYY-MM-DD&date_to=YYYY-MM-DD`; o intervalo personalizado e inclusivo e limitado a 366 dias. O contrato completo esta no OpenAPI em `/api/schema/`.
+### Ambiente completo com Docker
 
-A rota autenticada `/app` consome esse resumo na SPA. O periodo fica na URL, os graficos usam Chart.js com alternativas textuais e as alteracoes de leads invalidam seletivamente o resumo no TanStack Query.
+O fluxo recomendado usa Docker Compose e PostgreSQL 18 local.
 
-Origens CORS sao explicitas em `CORS_ALLOWED_ORIGINS`; wildcard nao e aceito. Configure separadamente `CSRF_TRUSTED_ORIGINS` para origens autorizadas a enviar cookies.
+1. Crie o arquivo de ambiente a partir do exemplo:
 
-### 🌐 Demo Online
-Você pode testar o sistema funcionando em tempo real clicando no link abaixo:
+   ```bash
+   cp .env.example .env
+   ```
 
-👉 **[Acessar CRM Online (Render)](https://gestor-de-relacionamento-crm.onrender.com)**
+   No Windows PowerShell, use:
 
-*(Nota: Como o servidor é gratuito, pode levar alguns segundos para "acordar" no primeiro acesso).*
+   ```powershell
+   Copy-Item .env.example .env
+   ```
 
----
+2. Ajuste os valores locais de `POSTGRES_*` e `SECRET_KEY` em `.env`.
 
-## 🚀 Como rodar o projeto localmente
+3. Suba a aplicacao:
 
-### Pré-requisitos
-* Python instalado
-* Docker Desktop para o PostgreSQL local
+   ```bash
+   docker compose up --build
+   ```
 
-### Ambiente Docker reproduzivel
+4. Acesse `http://localhost:8080`.
 
-O fluxo recomendado nao exige Python, Node.js ou PostgreSQL instalados no host. Copie `.env.example` para `.env`, ajuste apenas os valores locais de `POSTGRES_*` e `SECRET_KEY`, e suba toda a stack:
+O Compose inicia PostgreSQL, aplica migrations pelo servico `migrate`, inicia o backend e publica o frontend. O backend fica disponivel internamente na porta `8000`; o frontend e a unica porta exposta no host.
+
+Para encerrar o ambiente preservando os dados locais:
 
 ```bash
-docker compose up --build
+docker compose down
 ```
 
-Servicos e portas:
+Use `docker compose down -v` apenas para remover volumes locais comprovadamente descartaveis.
 
-- `frontend`: `http://localhost:8080` (unica porta publicada); ele encaminha `/api/` para o backend na rede Docker.
-- `backend`: Gunicorn na porta interna `8000`, com health check em `/api/v1/health/`.
-- `postgres`: PostgreSQL 18, acessivel somente na rede Docker e persistido no volume `crm_postgres_data`.
-- `migrate`: processo controlado que aplica migrations antes de liberar o backend; migrations nao rodam no processo web.
+### Frontend fora do Docker
 
-No ambiente local, runtime e migration usam o mesmo usuario PostgreSQL para manter a configuracao simples. Em producao, o processo `migrate` deve receber uma credencial temporaria de deploy com privilegios de schema, enquanto o backend deve usar uma credencial de runtime com apenas os privilegios necessarios pela aplicacao.
+Para executar somente a SPA contra uma API local, crie `frontend/.env` a partir de `frontend/.env.example`, instale as dependencias e inicie o Vite:
 
-O cache local e suficiente para desenvolvimento. Em producao com mais de um processo ou replica, configure um backend compartilhado em `CACHE_BACKEND`/`CACHE_LOCATION` e ative `REQUIRE_SHARED_THROTTLE_CACHE=True`; esta sprint nao adiciona Redis.
+```bash
+cd frontend
+npm ci
+npm run dev
+```
 
-Para executar os testes em containers, com banco PostgreSQL controlado:
+`VITE_API_BASE_URL` deve apontar para a API local, por exemplo `http://localhost:8000/api/v1`.
+
+### 🧪 Testes e validacoes
+
+Com a stack Docker disponivel:
 
 ```bash
 docker compose --profile test run --rm backend-tests
 docker compose --profile test run --rm frontend-tests
 ```
 
-Para encerrar a stack preservando os dados locais:
-
-```bash
-docker compose down
-```
-
-`docker compose down -v` tambem remove `crm_postgres_data` e todos os dados locais persistidos. Use-o somente quando esse volume for comprovadamente descartavel.
-
-`VITE_API_BASE_URL` e uma configuracao publica incorporada no bundle. Na imagem Docker ela vale `/api/v1`; secrets, URLs de banco e chaves JWT nunca devem usar o prefixo `VITE_`.
-
-### CI
-
-O workflow `.github/workflows/ci.yml` roda em pull requests e pushes para `main` e `develop`. Ele valida backend em PostgreSQL 18, migrations, OpenAPI, dependencias Python, testes/lint/typecheck/build da SPA e os builds Docker sem publicar imagens ou fazer deploy.
-
-Os checks locais equivalentes sao:
-
-```bash
-docker compose --profile test run --rm backend-tests
-cd frontend && npm ci && npm run test:run && npm run lint && npm run typecheck && npm run build
-docker compose config
-docker build --file Dockerfile.backend --tag crm-pro-backend:local .
-docker build --file frontend/Dockerfile --tag crm-pro-frontend:local frontend
-```
-
-### Passo a Passo
-
-1.  **Clone o repositório**
-    ```bash
-    git clone https://github.com/EnioJr18/Gestor-de-Clientes-CRM.git
-    cd crm-portfolio
-    ```
-
-2.  **Crie e ative o ambiente virtual**
-    ```bash
-    # Windows
-    python -m venv venv
-    venv\Scripts\activate
-
-    # Linux/Mac
-    source venv/bin/activate
-    ```
-
-3.  **Instale as dependências**
-    ```bash
-    pip install -r backend/requirements.txt
-    ```
-
-4.  **Inicie o PostgreSQL local**
-    ```bash
-    docker compose up -d postgres
-    docker compose ps
-    ```
-
-    Para parar o banco local:
-    ```bash
-    docker compose stop postgres
-    ```
-
-    Para apagar somente um volume local comprovadamente descartavel:
-    ```bash
-    docker compose down -v
-    ```
-5.  **Configure as Variáveis de Ambiente**
-    Crie um arquivo `.env` na raiz do projeto. O backend carrega esse arquivo a partir da raiz do repositorio:
-    ```env
-    SECRET_KEY=sua_chave_secreta
-    DEBUG=True
-    USE_SQLITE=False
-    DATABASE_URL=postgresql://crm_user:crm_password@localhost:5432/crm_pro
-    TEST_DATABASE_URL=postgresql://crm_user:crm_password@localhost:5432/crm_pro_test
-    ```
-
-6.  **Execute as Migrations**
-    ```bash
-    python backend/manage.py migrate
-    ```
-
-7.  **Crie um Superusuário (para acessar o Admin, opcional)**
-    ```bash
-    python backend/manage.py createsuperuser
-    ```
-
-8.  **Inicie o servidor**
-    ```bash
-    python backend/manage.py runserver
-    ```
-
-    Alternativamente, entre na pasta `backend/` e execute `python manage.py runserver`.
-
-9.  **Execute os testes**
-    ```bash
-    python backend/manage.py test -v 2
-    ```
-
-10. **Acesse**
-http://127.0.0.1:8000/
-
-## SPA React
-
-Configure `frontend/.env` a partir de `frontend/.env.example`, mantendo o backend em `http://localhost:8000` e liberando `http://localhost:5173` nas variaveis `CORS_ALLOWED_ORIGINS` e `CSRF_TRUSTED_ORIGINS` do backend.
+Validacoes do frontend fora do Docker:
 
 ```bash
 cd frontend
-npm install
-npm run dev
-```
-
-Validacao do frontend:
-
-```bash
-npm run lint
-npm run typecheck
 npm run test:run
+npm run typecheck
+npm run lint
 npm run build
 ```
 
-### Gestao visual de leads
+## Deploy
 
-A SPA possui login JWT com access token somente em memoria e refresh em cookie HttpOnly. Apos autenticar, use `/app/leads` para listar, buscar, filtrar, ordenar, paginar, criar, editar, visualizar e excluir leads sem recarregar a pagina. Os filtros permanecem na URL.
-
-Configure `frontend/.env` com:
-
-```env
-VITE_API_BASE_URL=http://localhost:8000/api/v1
+```text
+GitHub -> Vercel  -> frontend React/Vite
+GitHub -> Render  -> backend Django/DRF
+Render -> Neon    -> PostgreSQL
 ```
 
-Use `localhost` de forma consistente no backend e no Vite para que CORS, CSRF e o cookie de refresh tenham a mesma origem esperada. O PostgreSQL local e iniciado com `docker compose up -d postgres`; crie um administrador com `python backend/manage.py createsuperuser`.
+O Vercel gera e publica os arquivos estaticos da SPA. O Render constroi a imagem Docker do backend, executa as migrations no startup controlado do container e inicia o Gunicorn. O backend usa a `DATABASE_URL` configurada no ambiente para se conectar ao Neon.
 
-Estado atual: autenticacao SPA, dashboard, leads e interacoes estao implementados. Perfil editavel na SPA e novos relatorios permanecem pendentes; as paginas Django legadas preservam o fluxo de perfil e exportacao CSV existente.
+## Status
 
-
+Projeto em desenvolvimento ativo e publicado em producao.
 
 ## 🤝 Contribuição
 Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou enviar pull requests.
 
-## 📄 Licença
+## 📄 Licenca
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+Distribuido sob a licenca MIT. Consulte [LICENSE](LICENSE).
 
----
+## Autor
+
 Desenvolvido por **Enio Jr** para fins de estudo e portfólio 💻
 
 📧 Entre em contato: eniojr100@gmail.com <br>
