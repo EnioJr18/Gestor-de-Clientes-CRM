@@ -39,6 +39,23 @@ export type LoginPayload = {
   password: string
 }
 
+export type RegistrationPayload = {
+  username: string
+  email: string
+  first_name: string
+  last_name: string
+  password: string
+  password_confirm: string
+}
+
+export type ProfilePayload = Pick<User, 'username' | 'email' | 'first_name' | 'last_name'>
+
+export type ChangePasswordPayload = {
+  current_password: string
+  new_password: string
+  new_password_confirm: string
+}
+
 export type AuthStatus =
   | 'idle'
   | 'loading'

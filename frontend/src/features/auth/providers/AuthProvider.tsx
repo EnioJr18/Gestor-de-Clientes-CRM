@@ -15,15 +15,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [status, setStatus] = useState<AuthStatus>('idle')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [noticeMessage, setNoticeMessage] = useState<string | null>(null)
   const bootstrapStarted = useRef(false)
 
-  const expireSession = useCallback(() => {
+  const clearSession = useCallback(() => {
     clearAccessToken()
     setUser(null)
     setStatus('unauthenticated')
-    setErrorMessage('Sua sessao expirou. Entre novamente.')
+    setErrorMessage(null)
+    setNoticeMessage(null)
     queryClient.removeQueries({ predicate: (query) => query.meta?.private === true })
   }, [queryClient])
+
+  const expireSession = useCallback(() => {
+    clearSession()
+    setErrorMessage('Sua sessao expirou. Entre novamente.')
+  }, [clearSession])
 
   const bootstrap = useCallback(async () => {
     setStatus('loading')
@@ -62,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(response.user)
     setStatus('authenticated')
     setErrorMessage(null)
+    setNoticeMessage(null)
   }, [])
 
   const logout = useCallback(async () => {
@@ -70,16 +78,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // O estado local deve ser encerrado mesmo se o refresh ja estiver revogado.
     } finally {
-      clearAccessToken()
-      setUser(null)
-      setStatus('unauthenticated')
-      setErrorMessage(null)
-      queryClient.removeQueries({ predicate: (query) => query.meta?.private === true })
+      clearSession()
     }
-  }, [queryClient])
+  }, [clearSession])
+
+  const endSession = useCallback((notice?: string) => {
+    clearSession()
+    setNoticeMessage(notice ?? null)
+  }, [clearSession])
 
   return (
-    <AuthContext.Provider value={{ user, status, errorMessage, login, logout, bootstrap }}>
+    <AuthContext.Provider value={{ user, status, errorMessage, noticeMessage, login, logout, updateUser: setUser, endSession, bootstrap }}>
       {children}
     </AuthContext.Provider>
   )

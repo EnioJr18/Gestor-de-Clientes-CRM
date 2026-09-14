@@ -1,8 +1,11 @@
 import {
   loginResponseSchema,
   userSchema,
+  type ChangePasswordPayload,
   type LoginPayload,
   type LoginResponse,
+  type ProfilePayload,
+  type RegistrationPayload,
   type User,
 } from '../types/auth'
 import { apiClient } from '../../../lib/api/client'
@@ -22,4 +25,18 @@ export async function currentUserRequest(): Promise<User> {
 export async function logoutRequest(): Promise<void> {
   const csrfToken = await ensureCsrfToken()
   await publicClient.post('/auth/logout/', {}, { headers: { 'X-CSRFToken': csrfToken } })
+}
+
+export async function registerRequest(payload: RegistrationPayload): Promise<User> {
+  const response = await publicClient.post('/auth/register/', payload)
+  return userSchema.parse(response.data)
+}
+
+export async function updateProfileRequest(payload: ProfilePayload): Promise<User> {
+  const response = await apiClient.patch('/users/me/', payload)
+  return userSchema.parse(response.data)
+}
+
+export async function changePasswordRequest(payload: ChangePasswordPayload): Promise<void> {
+  await apiClient.post('/auth/change-password/', payload)
 }

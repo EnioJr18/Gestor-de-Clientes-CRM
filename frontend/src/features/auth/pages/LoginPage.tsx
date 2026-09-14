@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { ArrowRight, LockKeyhole } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { Brand } from '../../../components/layout/Brand'
 import { normalizeApiError } from '../../../lib/errors/normalizeApiError'
@@ -16,9 +16,13 @@ function safeReturnPath(value: unknown): string {
 }
 
 export function LoginPage() {
-  const { login, errorMessage } = useAuth()
+  const { login, errorMessage, noticeMessage } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const routeMessage = typeof (location.state as { message?: unknown } | null)?.message === 'string'
+    ? (location.state as { message: string }).message
+    : null
+  const successMessage = routeMessage ?? noticeMessage
   const [submitError, setSubmitError] = useState<string | null>(errorMessage)
   const {
     register,
@@ -47,10 +51,10 @@ export function LoginPage() {
         <Brand />
         <div className="max-w-lg">
           <p className="mb-4 text-sm font-medium uppercase tracking-[0.18em] text-brand">Acesso seguro</p>
-          <h1 className="text-5xl font-semibold leading-tight tracking-tight text-strong">Seu trabalho continua. Seus tokens nao.</h1>
-          <p className="mt-6 text-lg leading-8 text-muted">O acesso permanece somente na memoria desta aba. A renovacao segura acontece por cookie HttpOnly.</p>
+          <h1 className="text-5xl font-semibold leading-tight tracking-tight text-strong">Relacoes bem acompanhadas geram oportunidades.</h1>
+          <p className="mt-6 text-lg leading-8 text-muted">Reuna seus contatos, acompanhe cada interacao e mantenha sua operacao comercial organizada.</p>
         </div>
-        <p className="text-sm text-muted">Fundacao da SPA CRM.Pro</p>
+        <p className="text-sm text-muted">CRM.Pro</p>
       </section>
 
       <section className="flex items-center justify-center px-6 py-12 sm:px-10">
@@ -74,10 +78,12 @@ export function LoginPage() {
               {errors.password && <p id="password-error" className="field-error">{errors.password.message}</p>}
             </div>
             {submitError && <p className="rounded-xl bg-danger-soft px-4 py-3 text-sm text-danger" role="alert">{submitError}</p>}
+            {successMessage && <p className="rounded-xl bg-success/15 px-4 py-3 text-sm text-success" role="status" aria-live="polite">{successMessage}</p>}
             <button className="primary-button" type="submit" disabled={isSubmitting}>
               <span>{isSubmitting ? 'Entrando...' : 'Entrar'}</span><ArrowRight className="size-4" aria-hidden="true" />
             </button>
           </form>
+          <p className="mt-6 text-center text-sm text-muted">Ainda nao tem uma conta? <Link className="font-medium text-brand underline-offset-4 hover:underline" to="/register">Criar minha conta</Link></p>
         </div>
       </section>
     </main>

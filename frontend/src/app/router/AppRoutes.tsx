@@ -8,14 +8,16 @@ const DashboardPage = lazy(() => import('../../features/dashboard/pages/Dashboar
 const LeadsPage = lazy(() => import('../../features/leads/pages/LeadsPage').then((module) => ({ default: module.LeadsPage })))
 const LeadDetailsPage = lazy(() => import('../../features/leads/pages/LeadDetailsPage').then((module) => ({ default: module.LeadDetailsPage })))
 const LoginPage = lazy(() => import('../../features/auth/pages/LoginPage').then((module) => ({ default: module.LoginPage })))
+const RegisterPage = lazy(() => import('../../features/auth/pages/RegisterPage').then((module) => ({ default: module.RegisterPage })))
+const ProfilePage = lazy(() => import('../../features/auth/pages/ProfilePage').then((module) => ({ default: module.ProfilePage })))
 const NotFoundPage = lazy(() => import('./NotFoundPage').then((module) => ({ default: module.NotFoundPage })))
 const fallback = <main className="grid min-h-screen place-items-center bg-canvas p-6" role="status">Carregando pagina...</main>
 
 export function AppRoutes() {
   return (
     <Suspense fallback={fallback}><Routes>
-      <Route element={<PublicRoute />}><Route path="/login" element={<LoginPage />} /></Route>
-      <Route element={<ProtectedRoute />}><Route element={<AppLayout />}><Route path="/app" element={<DashboardPage />} /><Route path="/app/leads" element={<LeadsPage />} /><Route path="/app/leads/:id" element={<LeadDetailsPage />} /></Route></Route>
+      <Route element={<PublicRoute />}><Route path="/login" element={<LoginPage />} /><Route path="/register" element={<RegisterPage />} /></Route>
+      <Route element={<ProtectedRoute />}><Route element={<AppLayout />}><Route path="/app" element={<DashboardPage />} /><Route path="/app/leads" element={<LeadsPage />} /><Route path="/app/leads/:id" element={<LeadDetailsPage />} /><Route path="/app/profile" element={<ProfilePage />} /></Route></Route>
       <Route path="/" element={<Navigate to="/app" replace />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes></Suspense>
