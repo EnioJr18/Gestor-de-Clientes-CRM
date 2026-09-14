@@ -36,9 +36,9 @@ export function RegisterPage() {
       <section className="hidden border-r border-line bg-panel p-12 lg:flex lg:flex-col lg:justify-between">
         <Brand />
         <div className="max-w-lg">
-          <p className="mb-4 text-sm font-medium uppercase tracking-[0.18em] text-brand">Comece agora</p>
-          <h1 className="text-5xl font-semibold leading-tight tracking-tight text-strong">Centralize cada relacionamento importante.</h1>
-          <p className="mt-6 text-lg leading-8 text-muted">Organize seus leads, acompanhe interacoes e tenha clareza sobre suas oportunidades.</p>
+          <p className="mb-4 text-sm font-medium uppercase tracking-[0.18em] text-brand">CRM.Pro</p>
+          <h1 className="text-5xl font-semibold leading-tight tracking-tight text-strong">Organize seus relacionamentos comerciais em um so lugar.</h1>
+          <p className="mt-6 text-lg leading-8 text-muted">Acompanhe clientes, oportunidades e interacoes com mais clareza.</p>
         </div>
         <p className="text-sm text-muted">CRM.Pro</p>
       </section>
@@ -48,7 +48,7 @@ export function RegisterPage() {
           <div className="mb-8 lg:hidden"><Brand /></div>
           <div className="mb-8">
             <span className="mb-5 grid size-12 place-items-center rounded-2xl bg-brand-soft text-brand"><UserPlus className="size-5" aria-hidden="true" /></span>
-            <h1 className="text-3xl font-semibold tracking-tight text-strong">Crie sua conta</h1>
+            <h1 className="text-3xl font-semibold tracking-tight text-strong">Criar sua conta</h1>
             <p className="mt-2 text-muted">Comece a organizar seus relacionamentos comerciais.</p>
           </div>
 

@@ -50,9 +50,9 @@ export function LoginPage() {
       <section className="hidden border-r border-line bg-panel p-12 lg:flex lg:flex-col lg:justify-between">
         <Brand />
         <div className="max-w-lg">
-          <p className="mb-4 text-sm font-medium uppercase tracking-[0.18em] text-brand">Acesso seguro</p>
-          <h1 className="text-5xl font-semibold leading-tight tracking-tight text-strong">Relacoes bem acompanhadas geram oportunidades.</h1>
-          <p className="mt-6 text-lg leading-8 text-muted">Reuna seus contatos, acompanhe cada interacao e mantenha sua operacao comercial organizada.</p>
+          <p className="mb-4 text-sm font-medium uppercase tracking-[0.18em] text-brand">CRM.Pro</p>
+          <h1 className="text-5xl font-semibold leading-tight tracking-tight text-strong">Organize seus relacionamentos comerciais em um so lugar.</h1>
+          <p className="mt-6 text-lg leading-8 text-muted">Acompanhe clientes, oportunidades e interacoes com mais clareza.</p>
         </div>
         <p className="text-sm text-muted">CRM.Pro</p>
       </section>

@@ -20,7 +20,7 @@ describe('bootstrap e rotas', () => {
       }),
     )
     renderApp('/app')
-    const bootstrapLoading = screen.getByText('Validando sua sessao...')
+    const bootstrapLoading = screen.getByText('Preparando seu espaco de trabalho.')
     expect(bootstrapLoading).toBeVisible()
     await waitFor(() => expect(releaseRefresh).toBeTypeOf('function'))
     await act(async () => {
@@ -34,7 +34,7 @@ describe('bootstrap e rotas', () => {
   it('restaura a sessao pelo refresh e users/me', async () => {
     mockAuthenticatedBootstrap()
     renderApp('/app')
-    const bootstrapLoading = screen.getByText('Validando sua sessao...')
+    const bootstrapLoading = screen.getByText('Preparando seu espaco de trabalho.')
     await waitFor(() => expect(bootstrapLoading).not.toBeVisible())
     await act(async () => { await vi.dynamicImportSettled() })
     expect(getAccessToken()).toBe('boot-access')
@@ -61,6 +61,16 @@ describe('bootstrap e rotas', () => {
 })
 
 describe('login', () => {
+  it('apresenta a proposta do produto sem linguagem tecnica', async () => {
+    mockUnauthenticatedBootstrap()
+    renderApp('/login')
+
+    expect(await screen.findByText('Organize seus relacionamentos comerciais em um so lugar.')).toBeInTheDocument()
+    expect(screen.getByText('Acompanhe clientes, oportunidades e interacoes com mais clareza.')).toBeInTheDocument()
+    expect(screen.queryByText('Acesso seguro')).not.toBeInTheDocument()
+    expect(screen.queryByText('Relacoes bem acompanhadas geram oportunidades.')).not.toBeInTheDocument()
+  })
+
   it('valida campos localmente sem chamar o backend', async () => {
     mockUnauthenticatedBootstrap()
     let loginCalls = 0

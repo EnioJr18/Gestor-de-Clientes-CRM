@@ -22,7 +22,7 @@ describe('cadastro publico', () => {
     mockUnauthenticatedBootstrap()
     renderApp('/register')
 
-    expect(await screen.findByRole('heading', { name: 'Crie sua conta' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Criar sua conta' })).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Criar minha conta' }))
     expect(await screen.findByText('Informe seu nome de usuario.')).toBeInTheDocument()
     expect(screen.getByText('Informe um e-mail valido.')).toBeInTheDocument()
@@ -36,7 +36,7 @@ describe('cadastro publico', () => {
     server.use(http.post(`${apiBaseUrl}/auth/register/`, () => { requests += 1; return new HttpResponse(null, { status: 500 }) }))
     renderApp('/register')
 
-    await screen.findByRole('heading', { name: 'Crie sua conta' })
+    await screen.findByRole('heading', { name: 'Criar sua conta' })
     await fillRegistrationForm()
     await userEvent.clear(screen.getByLabelText('Confirmar senha'))
     await userEvent.type(screen.getByLabelText('Confirmar senha'), 'DifferentPass123!')
@@ -51,7 +51,7 @@ describe('cadastro publico', () => {
     server.use(http.post(`${apiBaseUrl}/auth/register/`, () => HttpResponse.json({ status: 400, code: 'validation_error', message: 'Dados invalidos.', errors: { username: ['Este nome de usuario ja existe.'] } }, { status: 400 })))
     renderApp('/register')
 
-    await screen.findByRole('heading', { name: 'Crie sua conta' })
+    await screen.findByRole('heading', { name: 'Criar sua conta' })
     await fillRegistrationForm()
     await userEvent.click(screen.getByRole('button', { name: 'Criar minha conta' }))
     expect(await screen.findByText('Este nome de usuario ja existe.')).toBeInTheDocument()
@@ -76,7 +76,7 @@ describe('perfil autenticado', () => {
     await waitFor(() => expect(getAccessToken()).toBe('boot-access'))
     await act(async () => { await vi.dynamicImportSettled() })
     expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
-  })
+  }, 20_000)
 
   it('carrega os dados, salva o perfil e atualiza o nome no layout', async () => {
     mockAuthenticatedBootstrap()

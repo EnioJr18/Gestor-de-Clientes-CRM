@@ -1,0 +1,17 @@
+{
+  "name": "CRM.Pro",
+  "short_name": "CRM.Pro",
+  "description": "Organize seus relacionamentos comerciais em um so lugar.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#8b6cff",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
